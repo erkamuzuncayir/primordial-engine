@@ -1,0 +1,155 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "clang-base-windows",
+      "hidden": true,
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl.exe",
+        "CMAKE_CXX_COMPILER": "clang-cl.exe",
+        "CMAKE_LINKER": "lld-link.exe"
+      },
+      "environment": {
+        "CC": "clang-cl.exe",
+        "CXX": "clang-cl.exe"
+      }
+    },
+    {
+      "name": "clang-base-linux",
+      "hidden": true,
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      },
+      "environment": {
+        "CC": "clang",
+        "CXX": "clang++"
+      }
+    },
+    {
+      "name": "gcc-base",
+      "hidden": true,
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
+      },
+      "environment": {
+        "CC": "gcc",
+        "CXX": "g++"
+      }
+    },
+    {
+      "name": "msvc-base",
+      "hidden": true,
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      }
+    },
+    {
+      "name": "Debug-Clangd-Windows",
+      "displayName": "Debug Clangd (Windows)",
+      "description": "Debug build using LLVM clang-cl on Windows",
+      "inherits": "clang-base-windows",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Release-Clangd-Windows",
+      "displayName": "Release Clangd (Windows)",
+      "description": "Release build using LLVM clang-cl on Windows",
+      "inherits": "clang-base-windows",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "Debug-Clang-Linux",
+      "displayName": "Debug Clang (Linux)",
+      "description": "Debug build using Clang on Linux",
+      "inherits": "clang-base-linux",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Release-Clang-Linux",
+      "displayName": "Release Clang (Linux)",
+      "description": "Release build using Clang on Linux",
+      "inherits": "clang-base-linux",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "Debug-GCC",
+      "displayName": "Debug GCC",
+      "description": "Debug build using GCC on Linux",
+      "inherits": "gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Release-GCC",
+      "displayName": "Release GCC",
+      "description": "Release build using GCC on Linux",
+      "inherits": "gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "Debug-MSVC",
+      "displayName": "Debug MSVC",
+      "description": "Debug build using MSVC cl.exe",
+      "inherits": "msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Release-MSVC",
+      "displayName": "Release MSVC",
+      "description": "Release build using MSVC cl.exe",
+      "inherits": "msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ]
+}

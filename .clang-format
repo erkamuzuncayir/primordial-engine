@@ -1,0 +1,45 @@
+Language: Cpp
+BasedOnStyle: Google
+
+# Formatting logic
+IndentWidth: 4
+TabWidth: 4
+UseTab: Always
+AccessModifierOffset: -4
+
+# Alignment settings
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignConsecutiveMacros: true
+AlignOperands: Align
+AlignTrailingComments: true
+AlignEscapedNewlines: Right
+
+# Pointer and Reference alignment
+PointerAlignment: Right
+DerivePointerAlignment: false
+
+# Braces and Spacing
+BreakBeforeBraces: Attach
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceInEmptyParentheses: false
+SpacesInParentheses: false
+
+# Short blocks and lines
+ColumnLimit: 120
+SortIncludes: true
+IndentCaseLabels: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: true
+
+# Packing and Lines
+BinPackArguments: true
+BinPackParameters: true
+BreakConstructorInitializers: BeforeColon
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None

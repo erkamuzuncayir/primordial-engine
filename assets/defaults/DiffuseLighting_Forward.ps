@@ -1,0 +1,62 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: light.ps
+////////////////////////////////////////////////////////////////////////////////
+
+/////////////
+// GLOBALS //
+/////////////
+Texture2D shaderTexture : register(t0);
+SamplerState SampleType : register(s0);
+
+// SLOT 0: Global Data (Must match VS definition exactly)
+cbuffer GlobalUniforms : register(b0)
+{
+    column_major matrix g_viewMatrix;
+    column_major matrix g_projMatrix;
+    float3 g_cameraPos;
+    float  g_time;
+    float3 g_lightDir;
+    float  g_ambientIntensity;
+    float4 g_lightColor;
+};
+
+// SLOT 2: Material Data
+cbuffer MaterialBuffer : register(b2)
+{
+    float4 diffuseColor;
+};
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float3 normal   : NORMAL;
+    float3 tangent  : TEXCOORD0;
+    float2 tex      : TEXCOORD1;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+float4 main(PixelInputType input) : SV_TARGET
+{
+    float4 color = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Sample Texture
+    float4 textureColor = shaderTexture.Sample(SampleType, input.tex);
+
+    // Light Direction
+    float3 L = -normalize(g_lightDir);
+
+    float lightIntensity = saturate(dot(input.normal, L));
+
+    // Determine the final amount of diffuse color based on the diffuse color combined with the light intensity.
+    color = saturate(g_lightColor * lightIntensity);
+
+    // Multiply the texture pixel and the final diffuse color to get the final pixel color result.
+	color = color * textureColor;
+
+    return color;
+}
