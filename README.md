@@ -1,4 +1,4 @@
-# PrimordialEngine
+# Primordial Engine
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B20-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey)
@@ -10,6 +10,7 @@
 ## 🚧 Active Development
 > *This section tracks my immediate focus. For the full roadmap and backlog, visit the [**Project Board**](https://github.com/users/erkamuzuncayir/projects/3).*
 
+- [ ] ⚙️ **Physics:** Start to implement physics module
 - [ ] 🏗️ **Architecture:** Refactor Engine to Dynamic Library (DLL)
 
 ---
@@ -139,7 +140,7 @@ Ensure you have the following installed and available in your system PATH:
 3.  **Git**
 4.  **Compiler:**
     * *Windows:* Visual Studio 2022 (MSVC) **OR** LLVM (Clang-CL)
-    * *Linux:* Clang++
+    * *Linux:* Clang++ **OR** GCC
 
 ### 1. Clone the Repository
 ```bash
