@@ -161,9 +161,9 @@ void GUISystem::DrawInspector() {
 
 				changed |= ImGui::DragFloat3("Position", &tf->position.x, 0.1f);
 
-				Math::Vector3 rotDeg = Math::Vec3Degrees(tf->rotation);
+				Math::Vec3 rotDeg = Math::Degrees(tf->rotation);
 				if (ImGui::DragFloat3("Rotation", &rotDeg.x, 1.0f)) {
-					tf->rotation = Math::Vec3Radians(rotDeg);
+					tf->rotation = Math::Radians(rotDeg);
 					changed		 = true;
 				}
 

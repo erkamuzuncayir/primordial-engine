@@ -49,7 +49,7 @@ struct MaterialAssetInfo : AssetInfo {
 
 	std::unordered_map<Graphics::TextureType, std::pair<std::string, std::vector<std::filesystem::path>>>
 		textureBindings;
-	using PropValue = std::variant<float, int, Math::Vector2, Math::Vector3, Math::Vector4>;
+	using PropValue = std::variant<float, int, Math::Vec2, Math::Vec3, Math::Vec4>;
 	std::unordered_map<Graphics::MaterialProperty, PropValue> properties;
 };
 

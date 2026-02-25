@@ -175,25 +175,25 @@ std::vector<std::string> SceneLoader::SplitString(const std::string &str) {
 	return results;
 }
 
-Math::Vector3 SceneLoader::ParseVector3(const std::string &value) {
+Math::Vec3 SceneLoader::ParseVector3(const std::string &value) {
 	std::stringstream ss(value);
 	float			  x = 0, y = 0, z = 0;
 	ss >> x >> y >> z;
-	return Math::Vector3(x, y, z);
+	return Math::Vec3(x, y, z);
 }
 
-Math::Vector4 SceneLoader::ParseVector4(const std::string &value) {
+Math::Vec4 SceneLoader::ParseVector4(const std::string &value) {
 	std::stringstream ss(value);
 	float			  x = 0, y = 0, z = 0, w = 1.0f;
 	ss >> x >> y >> z >> w;
-	return Math::Vector4(x, y, z, w);
+	return Math::Vec4(x, y, z, w);
 }
 
-Math::Vector2 SceneLoader::ParseVector2(const std::string &value) {
+Math::Vec2 SceneLoader::ParseVector2(const std::string &value) {
 	std::stringstream ss(value);
 	float			  x = 0, y = 0;
 	ss >> x >> y;
-	return Math::Vector2(x, y);
+	return Math::Vec2(x, y);
 }
 
 float SceneLoader::ParseFloat(const std::string &value) {
@@ -400,7 +400,7 @@ void SceneLoader::HandleTransformKey(const std::string &key, const std::string &
 	} else if (key == "Position")
 		tf->position = ParseVector3(value);
 	else if (key == "Rotation")
-		tf->rotation = Math::Vec3Radians(ParseVector3(value));
+		tf->rotation = Math::Radians(ParseVector3(value));
 	else if (key == "Scale")
 		tf->scale = ParseVector3(value);
 	else

@@ -75,7 +75,7 @@ void RenderSystem::OnUpdate(float dt) {
 	}
 
 	Components::DirectionalLight dirLightData;
-	auto						 positionOfDirLight = Math::Vector3(0, 100, 0);
+	auto						 positionOfDirLight = Math::Vec3(0, 100, 0);
 
 	if (activeLightID != ECS::INVALID_ENTITY_ID) {
 		if (auto *light = ref_entityManager->TryGetTIComponent<Components::DirectionalLight>(activeLightID)) {
@@ -86,12 +86,12 @@ void RenderSystem::OnUpdate(float dt) {
 			positionOfDirLight = tf->position;
 		}
 	} else {
-		dirLightData.color = Math::Vector4(1.0f, 0.0f, 1.0f, 1.0f);
+		dirLightData.color = Math::Vec4(1.0f, 0.0f, 1.0f, 1.0f);
 	}
 
-	Math::Vector3 target(0.0f, 0.0f, 0.0f);
-	Math::Vector3 directionToTarget = Math::Normalize(target - positionOfDirLight);
-	Math::Vector4 finalLightDir		= Math::Vector4(directionToTarget, 0.0f);
+	Math::Vec3 target(0.0f, 0.0f, 0.0f);
+	Math::Vec3 directionToTarget = Math::Normalize(target - positionOfDirLight);
+	Math::Vec4 finalLightDir	 = Math::Vec4(directionToTarget, 0.0f);
 
 	Graphics::CBPerPass perPassData{
 		.view			   = cam.viewMatrix,
@@ -100,12 +100,12 @@ void RenderSystem::OnUpdate(float dt) {
 		.inverseProjection = Math::Inverse(cam.projectionMatrix),
 		.time			   = 0,
 		.deltaTime		   = dt,
-		.resolution		   = Math::Vector2(ref_renderConfig->width, ref_renderConfig->height),
-		.inverseResolution = Math::Vector2(1 / ref_renderConfig->width, 1 / ref_renderConfig->height),
+		.resolution		   = Math::Vec2(ref_renderConfig->width, ref_renderConfig->height),
+		.inverseResolution = Math::Vec2(1 / ref_renderConfig->width, 1 / ref_renderConfig->height),
 		._pad0			   = {},
 		.lightColor		   = dirLightData.color,
 		.lightDirection	   = finalLightDir,
-		.ambientLightColor = Math::Vector4(0.1f, 0.1f, 0.15f, 1.0f)};
+		.ambientLightColor = Math::Vec4(0.1f, 0.1f, 0.15f, 1.0f)};
 
 	m_renderer->UpdateGlobalBuffer(perPassData);
 
@@ -123,9 +123,9 @@ void RenderSystem::OnUpdate(float dt) {
 		auto &meshRenderer = modelArr.Get(entityID);
 		auto &transform	   = transformArr.Get(entityID);
 
-		Math::Matrix4 world = transform.worldMatrix;
+		Math::Mat44 world = transform.worldMatrix;
 
-		float	 dist	  = Math::Vector3Distance(transform.position, transform.position);
+		float	 dist	  = Math::Distance(transform.position, transform.position);
 		uint32_t depthInt = static_cast<uint32_t>(dist * 1000.0f);
 
 		for (const auto &[meshID, materialID] : meshRenderer.subMeshes) {

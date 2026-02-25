@@ -24,17 +24,17 @@ public:
 
 	void OnUpdate(float dt) override;
 
-	void						SetPosition(uint32_t entityID, float x, float y, float z) const;
-	void						SetPosition(uint32_t entityID, Math::Vector3 pos) const;
-	[[nodiscard]] Math::Vector3 GetPosition(uint32_t entityID) const;
+	void					 SetPosition(uint32_t entityID, float x, float y, float z) const;
+	void					 SetPosition(uint32_t entityID, Math::Vec3 pos) const;
+	[[nodiscard]] Math::Vec3 GetPosition(uint32_t entityID) const;
 
-	void						SetRotation(uint32_t entityID, float pitch, float yaw, float roll) const;  // in radians
-	void						SetRotation(uint32_t entityID, Math::Vector3 rot) const;				   // in radians
-	[[nodiscard]] Math::Vector3 GetRotation(uint32_t entityID) const;
+	void					 SetRotation(uint32_t entityID, float pitch, float yaw, float roll) const;	// in radians
+	void					 SetRotation(uint32_t entityID, Math::Vec3 rot) const;						// in radians
+	[[nodiscard]] Math::Vec3 GetRotation(uint32_t entityID) const;
 
-	void						SetScale(uint32_t entityID, float x, float y, float z) const;
-	void						SetScale(uint32_t entityID, Math::Vector3 scale) const;
-	[[nodiscard]] Math::Vector3 GetScale(uint32_t entityID) const;
+	void					 SetScale(uint32_t entityID, float x, float y, float z) const;
+	void					 SetScale(uint32_t entityID, Math::Vec3 scale) const;
+	[[nodiscard]] Math::Vec3 GetScale(uint32_t entityID) const;
 
 	void UpdateWorldMatrix(Components::Transform &transform);
 	void UpdateWorldMatrix(Components::Transform &transform, const Components::Transform &parentTransform);

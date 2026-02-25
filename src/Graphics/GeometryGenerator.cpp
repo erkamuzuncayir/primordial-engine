@@ -221,10 +221,10 @@ void GeometryGenerator::CreateGeosphere(const float radius, uint32_t numSubdivis
 	constexpr float X = 0.525731f;
 	constexpr float Z = 0.850651f;
 
-	Math::Vector3 pos[12] = {Math::Vector3(-X, 0.0f, Z), Math::Vector3(X, 0.0f, Z),	  Math::Vector3(-X, 0.0f, -Z),
-							 Math::Vector3(X, 0.0f, -Z), Math::Vector3(0.0f, Z, X),	  Math::Vector3(0.0f, Z, -X),
-							 Math::Vector3(0.0f, -Z, X), Math::Vector3(0.0f, -Z, -X), Math::Vector3(Z, X, 0.0f),
-							 Math::Vector3(-Z, X, 0.0f), Math::Vector3(Z, -X, 0.0f),  Math::Vector3(-Z, -X, 0.0f)};
+	Math::Vec3 pos[12] = {Math::Vec3(-X, 0.0f, Z), Math::Vec3(X, 0.0f, Z),	 Math::Vec3(-X, 0.0f, -Z),
+						  Math::Vec3(X, 0.0f, -Z), Math::Vec3(0.0f, Z, X),	 Math::Vec3(0.0f, Z, -X),
+						  Math::Vec3(0.0f, -Z, X), Math::Vec3(0.0f, -Z, -X), Math::Vec3(Z, X, 0.0f),
+						  Math::Vec3(-Z, X, 0.0f), Math::Vec3(Z, -X, 0.0f),	 Math::Vec3(-Z, -X, 0.0f)};
 
 	unsigned long k[60] = {1, 4,  0, 4, 9, 0,  4, 5, 9,	 8, 5, 4,  1,  8,  4, 1, 10, 8,	 10, 3,
 						   8, 8,  3, 5, 3, 2,  5, 3, 7,	 2, 3, 10, 7,  10, 6, 7, 6,	 11, 7,	 6,
@@ -242,9 +242,9 @@ void GeometryGenerator::CreateGeosphere(const float radius, uint32_t numSubdivis
 	// Project vertices onto sphere and scale.
 	for (uint32_t i = 0; i < meshData.Vertices.size(); ++i) {
 		// Project onto unit sphere.
-		Math::Vector3 n = Math::Normalize(meshData.Vertices[i].Position);
+		Math::Vec3 n = Math::Normalize(meshData.Vertices[i].Position);
 		// Project onto sphere.
-		const Math::Vector3 p = n * radius;	 // Scaling a vector is just multiplication
+		const Math::Vec3 p = n * radius;  // Scaling a vector is just multiplication
 
 		meshData.Vertices[i].Position = p;
 		meshData.Vertices[i].Normal	  = n;
@@ -293,7 +293,7 @@ void GeometryGenerator::CreateCylinder(float bottomRadius, float topRadius, floa
 			float c = cosf(j * dTheta);
 			float s = sinf(j * dTheta);
 
-			vertex.Position = Math::Vector3(r * c, y, r * s);
+			vertex.Position = Math::Vec3(r * c, y, r * s);
 
 			vertex.TexC.x = static_cast<float>(j) / sliceCount;
 			vertex.TexC.y = 1.0f - static_cast<float>(i) / stackCount;
@@ -318,15 +318,15 @@ void GeometryGenerator::CreateCylinder(float bottomRadius, float topRadius, floa
 			//  dz/dv = (r0-r1)*sin(t)
 
 			// This is unit length.
-			vertex.Tangent = Math::Vector3(-s, 0.0f, c);
+			vertex.Tangent = Math::Vec3(-s, 0.0f, c);
 
-			float		  dr = bottomRadius - topRadius;
-			Math::Vector3 bitangent(dr * c, -height, dr * s);
+			float	   dr = bottomRadius - topRadius;
+			Math::Vec3 bitangent(dr * c, -height, dr * s);
 
-			Math::Vector3 T = vertex.Tangent;
-			Math::Vector3 B = bitangent;
-			Math::Vector3 N = Math::Normalize(Math::Cross(T, B));
-			vertex.Normal	= N;
+			Math::Vec3 T  = vertex.Tangent;
+			Math::Vec3 B  = bitangent;
+			Math::Vec3 N  = Math::Normalize(Math::Cross(T, B));
+			vertex.Normal = N;
 
 			meshData.Vertices.push_back(vertex);
 		}
@@ -377,9 +377,9 @@ void GeometryGenerator::CreateGrid(const float width, const float depth, const u
 		for (uint32_t j = 0; j < n; ++j) {
 			float x = -halfWidth + j * dx;
 
-			meshData.Vertices[i * n + j].Position = Math::Vector3(x, 0.0f, z);
-			meshData.Vertices[i * n + j].Normal	  = Math::Vector3(0.0f, 1.0f, 0.0f);
-			meshData.Vertices[i * n + j].Tangent  = Math::Vector3(1.0f, 0.0f, 0.0f);
+			meshData.Vertices[i * n + j].Position = Math::Vec3(x, 0.0f, z);
+			meshData.Vertices[i * n + j].Normal	  = Math::Vec3(0.0f, 1.0f, 0.0f);
+			meshData.Vertices[i * n + j].Tangent  = Math::Vec3(1.0f, 0.0f, 0.0f);
 
 			// Stretch texture over grid.
 			meshData.Vertices[i * n + j].TexC.x = j * du;
