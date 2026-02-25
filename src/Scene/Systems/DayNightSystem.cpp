@@ -60,11 +60,11 @@ void DayNightSystem::DecreaseCycleDayDuration() const {
 }
 
 void DayNightSystem::UpdateSunMoon(Components::DayNightCycle &cycle, float dt) {
-	float		  angleRad = ((cycle.timeOfDay - 6.0f) / 24.0f) * Math::PI * 2.0f;
-	float		  cosA	   = cos(angleRad);
-	float		  sinA	   = sin(angleRad);
-	Math::Vector3 sunDir   = {cosA, sinA, 0.2f};
-	Math::Vector3 moonDir  = {-cosA, -sinA, 0.2f};
+	float	   angleRad = ((cycle.timeOfDay - 6.0f) / 24.0f) * Math::PI * 2.0f;
+	float	   cosA		= cos(angleRad);
+	float	   sinA		= sin(angleRad);
+	Math::Vec3 sunDir	= {cosA, sinA, 0.2f};
+	Math::Vec3 moonDir	= {-cosA, -sinA, 0.2f};
 
 	sunDir	= Math::Normalize(sunDir);
 	moonDir = Math::Normalize(moonDir);
@@ -82,13 +82,13 @@ void DayNightSystem::UpdateSunMoon(Components::DayNightCycle &cycle, float dt) {
 			sunTrans->state	   = Components::Transform::TransformState::Dirty;
 		}
 		if (sunLight) {
-			Math::Vector4 baseColor = CalculateLightColor(sunDir.y, cycle);
+			Math::Vec4 baseColor = CalculateLightColor(sunDir.y, cycle);
 
 			float fade = std::clamp((sunDir.y - SWITCH_THRESHOLD) / FADE_RANGE, 0.0f, 1.0f);
 
 			float dayIntensity = 1.5f;
 
-			sunLight->color = Math::Vector4(baseColor.x, baseColor.y, baseColor.z, fade * dayIntensity);
+			sunLight->color = Math::Vec4(baseColor.x, baseColor.y, baseColor.z, fade * dayIntensity);
 		}
 	}
 
@@ -106,7 +106,7 @@ void DayNightSystem::UpdateSunMoon(Components::DayNightCycle &cycle, float dt) {
 			float moonIntensity = 0.5f;
 
 			moonLight->color =
-				Math::Vector4(cycle.moonColor.x, cycle.moonColor.y, cycle.moonColor.z, fade * moonIntensity);
+				Math::Vec4(cycle.moonColor.x, cycle.moonColor.y, cycle.moonColor.z, fade * moonIntensity);
 		}
 	}
 
@@ -181,7 +181,7 @@ void DayNightSystem::UpdateEnvironmentalEffects(Components::DayNightCycle &cycle
 					}
 				}
 
-				transform->scale = Math::Vector3(currentScale);
+				transform->scale = Math::Vec3(currentScale);
 				transform->state = Components::Transform::TransformState::Dirty;
 			}
 		}
@@ -202,7 +202,7 @@ void DayNightSystem::UpdateEnvironmentalEffects(Components::DayNightCycle &cycle
 	}
 }
 
-Math::Vector4 DayNightSystem::CalculateLightColor(float sunHeight, const Components::DayNightCycle &cycle) {
+Math::Vec4 DayNightSystem::CalculateLightColor(float sunHeight, const Components::DayNightCycle &cycle) {
 	if (sunHeight < 0.0f) return cycle.nightColor;
 	if (sunHeight > 0.2f) return cycle.dayColor;
 

@@ -25,9 +25,9 @@ struct DayNightCycle {
 	Graphics::TextureID rainTexture = Graphics::INVALID_HANDLE;
 	Graphics::TextureID snowTexture = Graphics::INVALID_HANDLE;
 
-	Math::Vector4 dayColor	 = {1.0f, 0.95f, 0.8f, 1.0f};
-	Math::Vector4 dawnColor	 = {1.0f, 0.4f, 0.2f, 1.0f};
-	Math::Vector4 nightColor = {0.05f, 0.05f, 0.1f, 1.0f};
-	Math::Vector4 moonColor	 = {0.6f, 0.7f, 0.9f, 0.5f};
+	Math::Vec4 dayColor	  = {1.0f, 0.95f, 0.8f, 1.0f};
+	Math::Vec4 dawnColor  = {1.0f, 0.4f, 0.2f, 1.0f};
+	Math::Vec4 nightColor = {0.05f, 0.05f, 0.1f, 1.0f};
+	Math::Vec4 moonColor  = {0.6f, 0.7f, 0.9f, 0.5f};
 };
 }  // namespace PE::Scene::Components

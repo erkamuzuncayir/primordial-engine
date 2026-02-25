@@ -39,8 +39,7 @@ struct MaterialConfigBuilder {
 	std::string			 name;
 	std::string			 shaderName;
 	Graphics::MaterialID id;
-	std::unordered_map<Graphics::MaterialProperty,
-					   std::variant<float, int, Math::Vector2, Math::Vector3, Math::Vector4>>
+	std::unordered_map<Graphics::MaterialProperty, std::variant<float, int, Math::Vec2, Math::Vec3, Math::Vec4>>
 		matProperties;
 	std::unordered_map<Graphics::TextureType, std::pair<std::string, std::vector<std::filesystem::path>>>
 																	 textureBindings;
@@ -81,9 +80,9 @@ private:
 	};
 
 	std::vector<std::string> SplitString(const std::string &str);
-	Math::Vector3			 ParseVector3(const std::string &value);
-	Math::Vector4			 ParseVector4(const std::string &value);
-	Math::Vector2			 ParseVector2(const std::string &value);
+	Math::Vec3				 ParseVector3(const std::string &value);
+	Math::Vec4				 ParseVector4(const std::string &value);
+	Math::Vec2				 ParseVector2(const std::string &value);
 	float					 ParseFloat(const std::string &value);
 	int						 ParseInt(const std::string &value);
 	bool					 ParseBool(const std::string &value);

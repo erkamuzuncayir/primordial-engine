@@ -41,9 +41,9 @@ public:
 												const std::string_view &shaderName = DefaultShaderName.data());
 
 	static Graphics::MaterialID RequestMaterial(
-		const std::string																				 &name,
+		const std::string																		&name,
 		const std::unordered_map<Graphics::MaterialProperty,
-								 std::variant<float, int, Math ::Vector2, Math::Vector3, Math::Vector4>> &matProperties,
+								 std::variant<float, int, Math ::Vec2, Math::Vec3, Math::Vec4>> &matProperties,
 		std::unordered_map<Graphics::TextureType, std::pair<std::string, std::vector<std::filesystem::path>>>
 						  &textureBindings,
 		const std::string &shaderName = DefaultShaderName.data());

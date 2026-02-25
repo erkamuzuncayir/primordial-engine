@@ -263,9 +263,9 @@ Graphics::MaterialID AssetManager::RequestMaterial(const std::string &name, cons
 }
 
 Graphics::MaterialID AssetManager::RequestMaterial(
-	const std::string																				&name,
-	const std::unordered_map<Graphics::MaterialProperty,
-							 std::variant<float, int, Math::Vector2, Math::Vector3, Math::Vector4>> &matProperties,
+	const std::string &name,
+	const std::unordered_map<Graphics::MaterialProperty, std::variant<float, int, Math::Vec2, Math::Vec3, Math::Vec4>>
+		&matProperties,
 	std::unordered_map<Graphics::TextureType, std::pair<std::string, std::vector<std::filesystem::path>>>
 					  &textureBindings,
 	const std::string &shaderName) {
@@ -295,12 +295,12 @@ Graphics::MaterialID AssetManager::RequestMaterial(
 		for (const auto &[propKey, propValue] : matProperties) {
 			if (std::holds_alternative<float>(propValue)) {
 				material.SetProperty(propKey, std::get<float>(propValue));
-			} else if (std::holds_alternative<Math::Vector3>(propValue)) {
-				material.SetProperty(propKey, std::get<Math::Vector3>(propValue));
-			} else if (std::holds_alternative<Math::Vector4>(propValue)) {
-				material.SetProperty(propKey, std::get<Math::Vector4>(propValue));
-			} else if (std::holds_alternative<Math::Vector2>(propValue)) {
-				material.SetProperty(propKey, std::get<Math::Vector2>(propValue));
+			} else if (std::holds_alternative<Math::Vec3>(propValue)) {
+				material.SetProperty(propKey, std::get<Math::Vec3>(propValue));
+			} else if (std::holds_alternative<Math::Vec4>(propValue)) {
+				material.SetProperty(propKey, std::get<Math::Vec4>(propValue));
+			} else if (std::holds_alternative<Math::Vec2>(propValue)) {
+				material.SetProperty(propKey, std::get<Math::Vec2>(propValue));
 			}
 		}
 
@@ -345,12 +345,12 @@ Graphics::MaterialID AssetManager::RequestMaterial(const Scene::MaterialConfigBu
 		for (const auto &[propKey, propValue] : builder.matProperties) {
 			if (std::holds_alternative<float>(propValue)) {
 				material.SetProperty(propKey, std::get<float>(propValue));
-			} else if (std::holds_alternative<Math::Vector3>(propValue)) {
-				material.SetProperty(propKey, std::get<Math::Vector3>(propValue));
-			} else if (std::holds_alternative<Math::Vector4>(propValue)) {
-				material.SetProperty(propKey, std::get<Math::Vector4>(propValue));
-			} else if (std::holds_alternative<Math::Vector2>(propValue)) {
-				material.SetProperty(propKey, std::get<Math::Vector2>(propValue));
+			} else if (std::holds_alternative<Math::Vec3>(propValue)) {
+				material.SetProperty(propKey, std::get<Math::Vec3>(propValue));
+			} else if (std::holds_alternative<Math::Vec4>(propValue)) {
+				material.SetProperty(propKey, std::get<Math::Vec4>(propValue));
+			} else if (std::holds_alternative<Math::Vec2>(propValue)) {
+				material.SetProperty(propKey, std::get<Math::Vec2>(propValue));
 			}
 		}
 

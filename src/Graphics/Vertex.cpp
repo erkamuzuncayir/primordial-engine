@@ -3,7 +3,7 @@
 namespace PE::Graphics {
 Vertex::Vertex() : Position(0, 0, 0), Normal(0, 0, 0), Tangent(0, 0, 0), TexC(0, 0) {}
 
-Vertex::Vertex(Math::Vector3 position, Math::Vector3 normal, Math::Vector3 tangent, Math::Vector2 texcoord) {
+Vertex::Vertex(Math::Vec3 position, Math::Vec3 normal, Math::Vec3 tangent, Math::Vec2 texcoord) {
 	this->Position = position;
 	this->Normal   = normal;
 	this->Tangent  = tangent;

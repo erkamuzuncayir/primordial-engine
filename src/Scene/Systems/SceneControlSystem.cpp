@@ -142,8 +142,8 @@ void SceneControlSystem::SelectControlledEntity(const Graphics::Systems::CameraT
 }
 
 void SceneControlSystem::ProcessObjectMovement(float dt) {
-	Math::Vector3 localInput = Math::Vector3Zero;
-	Math::Vector3 deltaRot	 = Math::Vector3Zero;
+	Math::Vec3 localInput = Math::Vec3Zero;
+	Math::Vec3 deltaRot	  = Math::Vec3Zero;
 
 	const size_t size = m_moveStateStacks.size();
 	for (uint8_t i = 0; i < size; i++) {
@@ -163,16 +163,16 @@ void SceneControlSystem::ProcessObjectMovement(float dt) {
 	}
 
 	if (Math::LengthSq(localInput) > 0) {
-		Math::Vector3 currentRot   = ref_transformSystem->GetRotation(m_controlledEntity);
-		auto [Right, Up, Forward]  = Math::CalculateDirectionVectors(currentRot);
-		Math::Vector3 worldMoveDir = (Forward * localInput.z) + (Right * localInput.x) + (Up * localInput.y);
+		Math::Vec3 currentRot	  = ref_transformSystem->GetRotation(m_controlledEntity);
+		auto [Right, Up, Forward] = Math::CalculateDirectionVectors(currentRot);
+		Math::Vec3 worldMoveDir	  = (Forward * localInput.z) + (Right * localInput.x) + (Up * localInput.y);
 		ref_transformSystem->SetPosition(m_controlledEntity,
 										 ref_transformSystem->GetPosition(m_controlledEntity) += (worldMoveDir * dt));
 	}
 	if (Math::LengthSq(deltaRot) > 0) {
-		Math::Vector3 currentRot = ref_transformSystem->GetRotation(m_controlledEntity);
+		Math::Vec3 currentRot = ref_transformSystem->GetRotation(m_controlledEntity);
 
-		Math::Vector3 newRot = currentRot + (deltaRot * dt);
+		Math::Vec3 newRot = currentRot + (deltaRot * dt);
 
 		newRot.x = std::clamp(newRot.x, -1.5f, 1.5f);
 

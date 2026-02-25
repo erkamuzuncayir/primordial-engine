@@ -3,9 +3,9 @@
 namespace PE::Math {
 inline float AngleFromXY(float x, float y) { return atan2f(y, x); }
 
-inline Matrix4 InverseTranspose(const Matrix4 &M) {
-	Matrix4 A = M;
-	A[3]	  = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+inline Mat44 InverseTranspose(const Mat44 &M) {
+	Mat44 A = M;
+	A[3]	= Vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	return Transpose(Inverse(A));
 }

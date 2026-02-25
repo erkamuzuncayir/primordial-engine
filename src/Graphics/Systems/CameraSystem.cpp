@@ -63,7 +63,7 @@ void CameraSystem::OnResize(const float aspectRatio) const {
 	}
 }
 
-Math::Matrix4 CameraSystem::UpdateViewMatrix(const Scene::Components::Transform &transform) const {
+Math::Mat44 CameraSystem::UpdateViewMatrix(const Scene::Components::Transform &transform) const {
 	return Math::Inverse(transform.worldMatrix);
 }
 }  // namespace PE::Graphics::Systems

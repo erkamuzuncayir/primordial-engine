@@ -10,13 +10,13 @@
 namespace PE::Graphics {
 struct Vertex {
 	Vertex();
-	Vertex(Math::Vector3 position, Math::Vector3 normal, Math::Vector3 tangent, Math::Vector2 texcoord);
+	Vertex(Math::Vec3 position, Math::Vec3 normal, Math::Vec3 tangent, Math::Vec2 texcoord);
 	Vertex(float px, float py, float pz, float nx, float ny, float nz, float tx, float ty, float tz, float u, float v);
 
-	Math::Vector3 Position{};
-	Math::Vector3 Normal{};
-	Math::Vector3 Tangent{};
-	Math::Vector2 TexC{};
+	Math::Vec3 Position{};
+	Math::Vec3 Normal{};
+	Math::Vec3 Tangent{};
+	Math::Vec2 TexC{};
 
 #ifdef PE_VULKAN
 	static VkVertexInputBindingDescription GetBindingDescription() {

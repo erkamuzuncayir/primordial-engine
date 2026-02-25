@@ -36,7 +36,7 @@ ObjIndex ParseFaceIndex(const std::string &token) {
 }
 
 void CalculateTangents(std::vector<Graphics::Vertex> &vertices, const std::vector<uint32_t> &indices) {
-	std::vector<Math::Vector3> tangents(vertices.size(), Math::Vector3(0.0f, 0.0f, 0.0f));
+	std::vector<Math::Vec3> tangents(vertices.size(), Math::Vec3(0.0f, 0.0f, 0.0f));
 
 	for (size_t i = 0; i < indices.size(); i += 3) {
 		uint32_t i0 = indices[i];
@@ -47,17 +47,17 @@ void CalculateTangents(std::vector<Graphics::Vertex> &vertices, const std::vecto
 		const Graphics::Vertex &v1 = vertices[i1];
 		const Graphics::Vertex &v2 = vertices[i2];
 
-		Math::Vector3 edge1 = v1.Position - v0.Position;
-		Math::Vector3 edge2 = v2.Position - v0.Position;
+		Math::Vec3 edge1 = v1.Position - v0.Position;
+		Math::Vec3 edge2 = v2.Position - v0.Position;
 
-		Math::Vector2 deltaUV1 = v1.TexC - v0.TexC;
-		Math::Vector2 deltaUV2 = v2.TexC - v0.TexC;
+		Math::Vec2 deltaUV1 = v1.TexC - v0.TexC;
+		Math::Vec2 deltaUV2 = v2.TexC - v0.TexC;
 
 		float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
 		if (std::isinf(r) || std::isnan(r)) r = 1.0f;
 
-		Math::Vector3 tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * r;
+		Math::Vec3 tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * r;
 
 		tangents[i0] = tangents[i0] + tangent;
 		tangents[i1] = tangents[i1] + tangent;
@@ -65,18 +65,18 @@ void CalculateTangents(std::vector<Graphics::Vertex> &vertices, const std::vecto
 	}
 
 	for (size_t i = 0; i < vertices.size(); ++i) {
-		const Math::Vector3 &n = vertices[i].Normal;
-		const Math::Vector3 &t = tangents[i];
+		const Math::Vec3 &n = vertices[i].Normal;
+		const Math::Vec3 &t = tangents[i];
 
-		float		  dotNT		  = (n.x * t.x) + (n.y * t.y) + (n.z * t.z);
-		Math::Vector3 reprojected = t - (n * dotNT);
+		float	   dotNT	   = (n.x * t.x) + (n.y * t.y) + (n.z * t.z);
+		Math::Vec3 reprojected = t - (n * dotNT);
 
 		float lengthSq =
 			(reprojected.x * reprojected.x) + (reprojected.y * reprojected.y) + (reprojected.z * reprojected.z);
 
 		if (lengthSq < 0.000001f) {
-			Math::Vector3 c1 = Math::Cross(n, Math::Vector3(0.0f, 0.0f, 1.0f));
-			Math::Vector3 c2 = Math::Cross(n, Math::Vector3(0.0f, 1.0f, 0.0f));
+			Math::Vec3 c1 = Math::Cross(n, Math::Vec3(0.0f, 0.0f, 1.0f));
+			Math::Vec3 c2 = Math::Cross(n, Math::Vec3(0.0f, 1.0f, 0.0f));
 
 			if (Math::Length(c1) > Math::Length(c2)) {
 				vertices[i].Tangent = Math::Normalize(c1);
@@ -104,9 +104,9 @@ ModelLoadResult LoadOBJ(const std::filesystem::path &path) {
 	result.modelAssetInfo.name = modelName;
 	result.modelAssetInfo.sourcePaths.push_back(objPath);
 
-	std::vector<Math::Vector3> rawPos;
-	std::vector<Math::Vector2> rawUV;
-	std::vector<Math::Vector3> rawNor;
+	std::vector<Math::Vec3> rawPos;
+	std::vector<Math::Vec2> rawUV;
+	std::vector<Math::Vec3> rawNor;
 
 	std::string											 currentRawMatName = "Default";
 	std::vector<Graphics::Vertex>						 currentVertices;
@@ -253,9 +253,9 @@ bool LoadMTL(const std::filesystem::path &mtlPath, const std::string &modelNameP
 			newMat.properties[Graphics::MaterialProperty::Metallic]			 = 0.0f;
 			newMat.properties[Graphics::MaterialProperty::Roughness]		 = 0.5f;
 			newMat.properties[Graphics::MaterialProperty::Opacity]			 = 1.0f;
-			newMat.properties[Graphics::MaterialProperty::Tiling]			 = Math::Vector2(1.0f, 1.0f);
-			newMat.properties[Graphics::MaterialProperty::Offset]			 = Math::Vector2(0.0f, 0.0f);
-			newMat.properties[Graphics::MaterialProperty::EmissiveColor]	 = Math::Vector3(0.0f, 0.0f, 0.0f);
+			newMat.properties[Graphics::MaterialProperty::Tiling]			 = Math::Vec2(1.0f, 1.0f);
+			newMat.properties[Graphics::MaterialProperty::Offset]			 = Math::Vec2(0.0f, 0.0f);
+			newMat.properties[Graphics::MaterialProperty::EmissiveColor]	 = Math::Vec3(0.0f, 0.0f, 0.0f);
 			newMat.properties[Graphics::MaterialProperty::EmissiveIntensity] = 0.0f;
 			outResult.materials.push_back(newMat);
 			currentMat = &outResult.materials.back();
@@ -266,11 +266,11 @@ bool LoadMTL(const std::filesystem::path &mtlPath, const std::string &modelNameP
 		if (type == "Kd") {
 			float r, g, b;
 			ss >> r >> g >> b;
-			currentMat->properties[Graphics::MaterialProperty::Color] = Math::Vector4(r, g, b, 1.0f);
+			currentMat->properties[Graphics::MaterialProperty::Color] = Math::Vec4(r, g, b, 1.0f);
 		} else if (type == "Ks") {
 			float r, g, b;
 			ss >> r >> g >> b;
-			currentMat->properties[Graphics::MaterialProperty::SpecularColor] = Math::Vector3(r, g, b);
+			currentMat->properties[Graphics::MaterialProperty::SpecularColor] = Math::Vec3(r, g, b);
 		} else if (type == "Pr") {
 			float pr;
 			ss >> pr;
@@ -278,7 +278,7 @@ bool LoadMTL(const std::filesystem::path &mtlPath, const std::string &modelNameP
 		} else if (type == "Ke") {
 			float r, g, b;
 			ss >> r >> g >> b;
-			currentMat->properties[Graphics::MaterialProperty::EmissiveColor] = Math::Vector3(r, g, b);
+			currentMat->properties[Graphics::MaterialProperty::EmissiveColor] = Math::Vec3(r, g, b);
 
 			float maxChannel													  = std::max({r, g, b});
 			float intensity														  = (maxChannel > 0.001f) ? 1.0f : 0.0f;

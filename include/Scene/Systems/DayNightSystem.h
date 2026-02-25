@@ -16,10 +16,10 @@ public:
 	void	   DecreaseCycleDayDuration() const;
 
 private:
-	void		  UpdateSunMoon(Components::DayNightCycle &cycle, float dt);
-	void		  UpdateWeather(Components::DayNightCycle &cycle, float dt);
-	void		  UpdateEnvironmentalEffects(Components::DayNightCycle &cycle, float dt);
-	Math::Vector4 CalculateLightColor(float sunHeight, const Components::DayNightCycle &cycle);
+	void	   UpdateSunMoon(Components::DayNightCycle &cycle, float dt);
+	void	   UpdateWeather(Components::DayNightCycle &cycle, float dt);
+	void	   UpdateEnvironmentalEffects(Components::DayNightCycle &cycle, float dt);
+	Math::Vec4 CalculateLightColor(float sunHeight, const Components::DayNightCycle &cycle);
 
 	ECS::EntityManager *ref_eM = nullptr;
 
