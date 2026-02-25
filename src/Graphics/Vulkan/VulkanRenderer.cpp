@@ -660,23 +660,23 @@ ERROR_CODE VulkanRenderer::RecordCommandBuffer(uint32_t imageIndex, VkCommandBuf
 void VulkanRenderer::UpdateGlobalBuffer(const CBPerPass &data) {
 	CBPerPass shadowData = data;
 
-	Math::Vector3 lightDir = Math::Vector3(data.lightDirection.x, data.lightDirection.y, data.lightDirection.z);
+	Math::Vec3 lightDir = Math::Vec3(data.lightDirection.x, data.lightDirection.y, data.lightDirection.z);
 
-	Math::Vector3 lightPos = Math::Normalize(lightDir) * (-110.0f);
+	Math::Vec3 lightPos = Math::Normalize(lightDir) * (-110.0f);
 
-	Math::Vector3 target = Math::Vector3Zero;
+	Math::Vec3 target = Math::Vec3Zero;
 
-	auto up = Math::Vector3(0.0f, 1.0f, 0.0f);
+	auto up = Math::Vec3(0.0f, 1.0f, 0.0f);
 	if (Math::Abs(lightDir.y) > 0.99f) {
-		up = Math::Vector3(0.0f, 0.0f, 1.0f);
+		up = Math::Vec3(0.0f, 0.0f, 1.0f);
 	}
 
-	Math::Matrix4 lightView = Math::Mat4LookAt(lightPos, target, up);
-	float		  orthoSize = 100.0f;
-	float		  nearPlane = 0.1f;
-	float		  farPlane	= 200.0f;
+	Math::Mat44 lightView = Math::Mat4LookAt(lightPos, target, up);
+	float		orthoSize = 100.0f;
+	float		nearPlane = 0.1f;
+	float		farPlane  = 200.0f;
 
-	Math::Matrix4 lightProj		= Math::Mat4Ortho(-orthoSize, orthoSize, -orthoSize, orthoSize, nearPlane, farPlane);
+	Math::Mat44 lightProj		= Math::Mat4Ortho(-orthoSize, orthoSize, -orthoSize, orthoSize, nearPlane, farPlane);
 	shadowData.lightSpaceMatrix = lightProj * lightView;
 	m_perPassBuffers[m_currentFrame]->Update(&shadowData, sizeof(CBPerPass), 0);
 }
@@ -903,56 +903,56 @@ MaterialID VulkanRenderer::CreateMaterial(ShaderID shaderID) {
 	switch (type) {
 		case ShaderType::Lit: {
 			bufferSize = sizeof(CBMaterial_Lit);
-			SetLayout(MaterialProperty::Color, offsetof(CBMaterial_Lit, diffuseColor), sizeof(Math::Vector4));
-			SetLayout(MaterialProperty::SpecularColor, offsetof(CBMaterial_Lit, specularColor), sizeof(Math::Vector3));
+			SetLayout(MaterialProperty::Color, offsetof(CBMaterial_Lit, diffuseColor), sizeof(Math::Vec4));
+			SetLayout(MaterialProperty::SpecularColor, offsetof(CBMaterial_Lit, specularColor), sizeof(Math::Vec3));
 			SetLayout(MaterialProperty::SpecularPower, offsetof(CBMaterial_Lit, specularPower), sizeof(float));
-			SetLayout(MaterialProperty::Tiling, offsetof(CBMaterial_Lit, tiling), sizeof(Math::Vector2));
-			SetLayout(MaterialProperty::Offset, offsetof(CBMaterial_Lit, offset), sizeof(Math::Vector2));
+			SetLayout(MaterialProperty::Tiling, offsetof(CBMaterial_Lit, tiling), sizeof(Math::Vec2));
+			SetLayout(MaterialProperty::Offset, offsetof(CBMaterial_Lit, offset), sizeof(Math::Vec2));
 		} break;
 
 		case ShaderType::Unlit: {
 			bufferSize = sizeof(CBMaterial_Unlit);
-			SetLayout(MaterialProperty::Color, offsetof(CBMaterial_Unlit, color), sizeof(Math::Vector4));
-			SetLayout(MaterialProperty::Tiling, offsetof(CBMaterial_Unlit, tiling), sizeof(Math::Vector2));
-			SetLayout(MaterialProperty::Offset, offsetof(CBMaterial_Unlit, offset), sizeof(Math::Vector2));
+			SetLayout(MaterialProperty::Color, offsetof(CBMaterial_Unlit, color), sizeof(Math::Vec4));
+			SetLayout(MaterialProperty::Tiling, offsetof(CBMaterial_Unlit, tiling), sizeof(Math::Vec2));
+			SetLayout(MaterialProperty::Offset, offsetof(CBMaterial_Unlit, offset), sizeof(Math::Vec2));
 		} break;
 
 		case ShaderType::PBR: {
 			bufferSize = sizeof(CBMaterial_PBR);
-			SetLayout(MaterialProperty::Color, offsetof(CBMaterial_PBR, albedoColor), sizeof(Math::Vector4));
+			SetLayout(MaterialProperty::Color, offsetof(CBMaterial_PBR, albedoColor), sizeof(Math::Vec4));
 			SetLayout(MaterialProperty::Roughness, offsetof(CBMaterial_PBR, roughness), sizeof(float));
 			SetLayout(MaterialProperty::Metallic, offsetof(CBMaterial_PBR, metallic), sizeof(float));
 			SetLayout(MaterialProperty::NormalStrength, offsetof(CBMaterial_PBR, normalStrength), sizeof(float));
 			SetLayout(MaterialProperty::OcclusionStrength, offsetof(CBMaterial_PBR, occlusionStrength), sizeof(float));
-			SetLayout(MaterialProperty::EmissiveColor, offsetof(CBMaterial_PBR, emissiveColor), sizeof(Math::Vector3));
+			SetLayout(MaterialProperty::EmissiveColor, offsetof(CBMaterial_PBR, emissiveColor), sizeof(Math::Vec3));
 			SetLayout(MaterialProperty::EmissiveIntensity, offsetof(CBMaterial_PBR, emissiveIntensity), sizeof(float));
-			SetLayout(MaterialProperty::Tiling, offsetof(CBMaterial_PBR, tiling), sizeof(Math::Vector2));
-			SetLayout(MaterialProperty::Offset, offsetof(CBMaterial_PBR, offset), sizeof(Math::Vector2));
+			SetLayout(MaterialProperty::Tiling, offsetof(CBMaterial_PBR, tiling), sizeof(Math::Vec2));
+			SetLayout(MaterialProperty::Offset, offsetof(CBMaterial_PBR, offset), sizeof(Math::Vec2));
 		} break;
 
 		case ShaderType::Terrain: {
 			bufferSize = sizeof(CBMaterial_Terrain);
-			SetLayout(MaterialProperty::LayerTiling, offsetof(CBMaterial_Terrain, layerTiling), sizeof(Math::Vector4));
+			SetLayout(MaterialProperty::LayerTiling, offsetof(CBMaterial_Terrain, layerTiling), sizeof(Math::Vec4));
 			SetLayout(MaterialProperty::BlendDistance, offsetof(CBMaterial_Terrain, blendDistance), sizeof(float));
 			SetLayout(MaterialProperty::BlendFalloff, offsetof(CBMaterial_Terrain, blendFalloff), sizeof(float));
 		} break;
 
 		case ShaderType::UI: {
 			bufferSize = sizeof(CBMaterial_UI);
-			SetLayout(MaterialProperty::Color, offsetof(CBMaterial_UI, color), sizeof(Math::Vector4));
+			SetLayout(MaterialProperty::Color, offsetof(CBMaterial_UI, color), sizeof(Math::Vec4));
 			SetLayout(MaterialProperty::Opacity, offsetof(CBMaterial_UI, opacity), sizeof(float));
 			SetLayout(MaterialProperty::BorderThickness, offsetof(CBMaterial_UI, borderThickness), sizeof(float));
 			SetLayout(MaterialProperty::Softness, offsetof(CBMaterial_UI, softness), sizeof(float));
-			SetLayout(MaterialProperty::BorderColor, offsetof(CBMaterial_UI, borderColor), sizeof(Math::Vector4));
+			SetLayout(MaterialProperty::BorderColor, offsetof(CBMaterial_UI, borderColor), sizeof(Math::Vec4));
 		} break;
 
 		case ShaderType::SnowGlobe: {
 			bufferSize = sizeof(CBMaterial_Lit);
-			SetLayout(MaterialProperty::Color, offsetof(CBMaterial_Lit, diffuseColor), sizeof(Math::Vector4));
-			SetLayout(MaterialProperty::SpecularColor, offsetof(CBMaterial_Lit, specularColor), sizeof(Math::Vector3));
+			SetLayout(MaterialProperty::Color, offsetof(CBMaterial_Lit, diffuseColor), sizeof(Math::Vec4));
+			SetLayout(MaterialProperty::SpecularColor, offsetof(CBMaterial_Lit, specularColor), sizeof(Math::Vec3));
 			SetLayout(MaterialProperty::SpecularPower, offsetof(CBMaterial_Lit, specularPower), sizeof(float));
-			SetLayout(MaterialProperty::Tiling, offsetof(CBMaterial_Lit, tiling), sizeof(Math::Vector2));
-			SetLayout(MaterialProperty::Offset, offsetof(CBMaterial_Lit, offset), sizeof(Math::Vector2));
+			SetLayout(MaterialProperty::Tiling, offsetof(CBMaterial_Lit, tiling), sizeof(Math::Vec2));
+			SetLayout(MaterialProperty::Offset, offsetof(CBMaterial_Lit, offset), sizeof(Math::Vec2));
 		} break;
 		default: PE_LOG_ERROR("Not implemented!"); break;
 	}
@@ -1020,16 +1020,15 @@ MaterialID VulkanRenderer::CreateMaterial(ShaderID shaderID) {
 	auto HasProp = [&](MaterialProperty prop) { return matLayout[static_cast<size_t>(prop)].size > 0; };
 
 	// Default UVs
-	if (HasProp(MaterialProperty::Tiling)) mat.SetProperty(MaterialProperty::Tiling, Math::Vector2(1.0f, 1.0f));
-	if (HasProp(MaterialProperty::Offset)) mat.SetProperty(MaterialProperty::Offset, Math::Vector2(0.0f, 0.0f));
+	if (HasProp(MaterialProperty::Tiling)) mat.SetProperty(MaterialProperty::Tiling, Math::Vec2(1.0f, 1.0f));
+	if (HasProp(MaterialProperty::Offset)) mat.SetProperty(MaterialProperty::Offset, Math::Vec2(0.0f, 0.0f));
 
 	// Default Colors (White)
-	if (HasProp(MaterialProperty::Color))
-		mat.SetProperty(MaterialProperty::Color, Math::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	if (HasProp(MaterialProperty::Color)) mat.SetProperty(MaterialProperty::Color, Math::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	// Type Specific Defaults
 	if (type == ShaderType::Lit) {
-		mat.SetProperty(MaterialProperty::SpecularColor, Math::Vector3(0.5f, 0.5f, 0.5f));
+		mat.SetProperty(MaterialProperty::SpecularColor, Math::Vec3(0.5f, 0.5f, 0.5f));
 		mat.SetProperty(MaterialProperty::SpecularPower, 32.0f);
 	} else if (type == ShaderType::PBR) {
 		mat.SetProperty(MaterialProperty::Roughness, 0.5f);
@@ -1038,7 +1037,7 @@ MaterialID VulkanRenderer::CreateMaterial(ShaderID shaderID) {
 		mat.SetProperty(MaterialProperty::OcclusionStrength, 1.0f);
 		mat.SetProperty(MaterialProperty::EmissiveIntensity, 1.0f);
 	} else if (type == ShaderType::Terrain) {
-		mat.SetProperty(MaterialProperty::LayerTiling, Math::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+		mat.SetProperty(MaterialProperty::LayerTiling, Math::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		mat.SetProperty(MaterialProperty::BlendDistance, 10.0f);
 		mat.SetProperty(MaterialProperty::BlendFalloff, 1.0f);
 	} else if (type == ShaderType::UI) {

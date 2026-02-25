@@ -41,8 +41,8 @@ void ParticleSystem::OnUpdate(float dt) {
 
 		while (emitter.spawnAccumulator > rate) {
 			if (emitter.particles.size() < emitter.maxParticles) {
-				const auto	 *transform = ref_eM->TryGetTIComponent<Scene::Components::Transform>(entityID);
-				Math::Vector3 origin	= transform ? transform->position : Math::Vector3(0.0f);
+				const auto *transform = ref_eM->TryGetTIComponent<Scene::Components::Transform>(entityID);
+				Math::Vec3	origin	  = transform ? transform->position : Math::Vec3(0.0f);
 
 				Graphics::Components::Particle p;
 				p.position = origin;
@@ -107,9 +107,9 @@ void ParticleSystem::OnUpdate(float dt) {
 				p.position.x += turbulence * dt;
 				p.position.z += turbulence * dt;
 
-				Math::Vector4 startColor = {1.0f, 0.9f, 0.6f, 1.0f};
-				Math::Vector4 midColor	 = {1.0f, 0.4f, 0.0f, 0.9f};
-				Math::Vector4 endColor	 = {0.1f, 0.1f, 0.1f, 0.0f};
+				Math::Vec4 startColor = {1.0f, 0.9f, 0.6f, 1.0f};
+				Math::Vec4 midColor	  = {1.0f, 0.4f, 0.0f, 0.9f};
+				Math::Vec4 endColor	  = {0.1f, 0.1f, 0.1f, 0.0f};
 
 				if (lifeRatio < 0.5f) {
 					float t = lifeRatio / 0.5f;

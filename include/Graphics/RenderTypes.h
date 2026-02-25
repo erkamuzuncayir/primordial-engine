@@ -43,12 +43,12 @@ enum RenderFlags : uint8_t {
 };
 
 struct RenderCommand {
-	uint64_t	  key		 = UINT64_MAX;
-	MeshID		  meshID	 = INVALID_HANDLE;
-	MaterialID	  materialID = INVALID_HANDLE;
-	Math::Matrix4 worldMatrix{};
-	uint32_t	  ownerEntityID = ECS::INVALID_ENTITY_ID;
-	uint8_t		  flags			= RenderFlag_None;
+	uint64_t	key		   = UINT64_MAX;
+	MeshID		meshID	   = INVALID_HANDLE;
+	MaterialID	materialID = INVALID_HANDLE;
+	Math::Mat44 worldMatrix{};
+	uint32_t	ownerEntityID = ECS::INVALID_ENTITY_ID;
+	uint8_t		flags		  = RenderFlag_None;
 };
 
 enum class PrimitiveType { Box, Sphere, Geosphere, Cylinder, Grid, Quad, FullscreenQuad, DesertMesh };
@@ -207,62 +207,62 @@ static constexpr std::array<Utilities::EnumEntry<ShaderType>, static_cast<int>(S
 }};
 
 struct alignas(16) CBPerPass {
-	Math::Matrix4 view;
-	Math::Matrix4 projection;
-	Math::Matrix4 inverseView;
-	Math::Matrix4 inverseProjection;
+	Math::Mat44 view;
+	Math::Mat44 projection;
+	Math::Mat44 inverseView;
+	Math::Mat44 inverseProjection;
 
-	float		  time;
-	float		  deltaTime;
-	Math::Vector2 resolution;
-	Math::Vector2 inverseResolution;
-	float		  _pad0[2];
+	float	   time;
+	float	   deltaTime;
+	Math::Vec2 resolution;
+	Math::Vec2 inverseResolution;
+	float	   _pad0[2];
 
-	Math::Vector4 lightColor;
-	Math::Vector4 lightDirection;
-	Math::Vector4 ambientLightColor;
+	Math::Vec4 lightColor;
+	Math::Vec4 lightDirection;
+	Math::Vec4 ambientLightColor;
 
-	Math::Matrix4 lightSpaceMatrix;
+	Math::Mat44 lightSpaceMatrix;
 };
 
 struct alignas(16) CBPerObject {
-	Math::Matrix4 world;
+	Math::Mat44 world;
 };
 
 struct alignas(16) CBMaterial_Lit {
-	Math::Vector4 diffuseColor;
+	Math::Vec4 diffuseColor;
 
-	Math::Vector3 specularColor;
-	float		  specularPower;
+	Math::Vec3 specularColor;
+	float	   specularPower;
 
-	Math::Vector2 tiling;
-	Math::Vector2 offset;
+	Math::Vec2 tiling;
+	Math::Vec2 offset;
 };
 
 struct alignas(16) CBMaterial_Unlit {
-	Math::Vector4 color;
+	Math::Vec4 color;
 
-	Math::Vector2 tiling;
-	Math::Vector2 offset;
+	Math::Vec2 tiling;
+	Math::Vec2 offset;
 };
 
 struct alignas(16) CBMaterial_PBR {
-	Math::Vector4 albedoColor;
+	Math::Vec4 albedoColor;
 
 	float normalStrength;
 	float roughness;
 	float metallic;
 	float occlusionStrength;
 
-	Math::Vector3 emissiveColor;
-	float		  emissiveIntensity;
+	Math::Vec3 emissiveColor;
+	float	   emissiveIntensity;
 
-	Math::Vector2 tiling;
-	Math::Vector2 offset;
+	Math::Vec2 tiling;
+	Math::Vec2 offset;
 };
 
 struct alignas(16) CBMaterial_Terrain {
-	Math::Vector4 layerTiling;
+	Math::Vec4 layerTiling;
 
 	float blendDistance;
 	float blendFalloff;
@@ -270,14 +270,14 @@ struct alignas(16) CBMaterial_Terrain {
 };
 
 struct alignas(16) CBMaterial_UI {
-	Math::Vector4 color;
+	Math::Vec4 color;
 
 	float opacity;
 	float borderThickness;
 	float softness;
 	float padding;
 
-	Math::Vector4 borderColor;
+	Math::Vec4 borderColor;
 };
 
 enum class ParticleType { Fire, Rain, Snow, Dust, Custom, Count };
@@ -290,9 +290,9 @@ static constexpr std::array<Utilities::EnumEntry<ParticleType>, static_cast<int>
 					   {"Custom", ParticleType::Custom}}};
 
 struct GPUInstanceData {
-	Math::Vector3 Position;
-	Math::Vector4 Color;
-	float		  Size;
+	Math::Vec3 Position;
+	Math::Vec4 Color;
+	float	   Size;
 
 	static VkVertexInputBindingDescription GetBindingDescription() {
 		constexpr VkVertexInputBindingDescription bindingDescription{

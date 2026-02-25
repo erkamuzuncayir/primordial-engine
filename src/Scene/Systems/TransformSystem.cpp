@@ -85,59 +85,59 @@ void TransformSystem::OnUpdate(float dt) {
 
 void TransformSystem::SetPosition(const uint32_t entityID, const float x, const float y, const float z) const {
 	auto &transform	   = ref_eM->GetCompArr<Components::Transform>().Get(entityID);
-	transform.position = Math::Vector3(x, y, z);
+	transform.position = Math::Vec3(x, y, z);
 	transform.state	   = Components::Transform::TransformState::Dirty;
 }
 
-void TransformSystem::SetPosition(const uint32_t entityID, const Math::Vector3 pos) const {
+void TransformSystem::SetPosition(const uint32_t entityID, const Math::Vec3 pos) const {
 	auto &transform	   = ref_eM->GetCompArr<Components::Transform>().Get(entityID);
 	transform.position = pos;
 	transform.state	   = Components::Transform::TransformState::Dirty;
 }
 
-Math::Vector3 TransformSystem::GetPosition(const uint32_t entityID) const {
+Math::Vec3 TransformSystem::GetPosition(const uint32_t entityID) const {
 	return ref_eM->GetCompArr<Components::Transform>().Get(entityID).position;
 }
 
 void TransformSystem::SetRotation(const uint32_t entityID, const float pitch, const float yaw, const float roll) const {
 	auto &transform	   = ref_eM->GetCompArr<Components::Transform>().Get(entityID);
-	transform.rotation = Math::Vector3(pitch, yaw, roll);
+	transform.rotation = Math::Vec3(pitch, yaw, roll);
 	transform.state	   = Components::Transform::TransformState::Dirty;
 }
 
-void TransformSystem::SetRotation(const uint32_t entityID, const Math::Vector3 rot) const {
+void TransformSystem::SetRotation(const uint32_t entityID, const Math::Vec3 rot) const {
 	auto &transform	   = ref_eM->GetCompArr<Components::Transform>().Get(entityID);
 	transform.rotation = rot;
 	transform.state	   = Components::Transform::TransformState::Dirty;
 }
 
-Math::Vector3 TransformSystem::GetRotation(const uint32_t entityID) const {
+Math::Vec3 TransformSystem::GetRotation(const uint32_t entityID) const {
 	return ref_eM->GetCompArr<Components::Transform>().Get(entityID).rotation;
 }
 
 void TransformSystem::SetScale(const uint32_t entityID, const float x, const float y, const float z) const {
 	auto &transform = ref_eM->GetCompArr<Components::Transform>().Get(entityID);
-	transform.scale = Math::Vector3(x, y, z);
+	transform.scale = Math::Vec3(x, y, z);
 	transform.state = Components::Transform::TransformState::Dirty;
 }
 
-void TransformSystem::SetScale(const uint32_t entityID, const Math::Vector3 scale) const {
+void TransformSystem::SetScale(const uint32_t entityID, const Math::Vec3 scale) const {
 	auto &transform = ref_eM->GetCompArr<Components::Transform>().Get(entityID);
 	transform.scale = scale;
 	transform.state = Components::Transform::TransformState::Dirty;
 }
 
-Math::Vector3 TransformSystem::GetScale(const uint32_t entityID) const {
+Math::Vec3 TransformSystem::GetScale(const uint32_t entityID) const {
 	return ref_eM->GetCompArr<Components::Transform>().Get(entityID).scale;
 }
 
 void TransformSystem::UpdateWorldMatrix(Components::Transform &transform) {
-	const Math::Matrix4 identity	= Math::Matrix4Identity();
-	const Math::Matrix4 scale		= Math::Scale(identity, transform.scale);
-	Math::Matrix4		rotation	= Math::Rotate(identity, transform.rotation.y, Math::Vector3(0.0f, 1.0f, 0.0f));
-	rotation						= Math::Rotate(rotation, transform.rotation.x, Math::Vector3(1.0f, 0.0f, 0.0f));
-	rotation						= Math::Rotate(rotation, transform.rotation.z, Math::Vector3(0.0f, 0.0f, 1.0f));
-	const Math::Matrix4 translation = Math::Translate(identity, transform.position);
+	const Math::Mat44 identity	  = Math::Mat44Identity();
+	const Math::Mat44 scale		  = Math::Scale(identity, transform.scale);
+	Math::Mat44		  rotation	  = Math::Rotate(identity, transform.rotation.y, Math::Vec3(0.0f, 1.0f, 0.0f));
+	rotation					  = Math::Rotate(rotation, transform.rotation.x, Math::Vec3(1.0f, 0.0f, 0.0f));
+	rotation					  = Math::Rotate(rotation, transform.rotation.z, Math::Vec3(0.0f, 0.0f, 1.0f));
+	const Math::Mat44 translation = Math::Translate(identity, transform.position);
 
 	transform.localMatrix = translation * rotation * scale;
 	transform.worldMatrix = transform.localMatrix;
@@ -145,12 +145,12 @@ void TransformSystem::UpdateWorldMatrix(Components::Transform &transform) {
 
 void TransformSystem::UpdateWorldMatrix(Components::Transform		&transform,
 										const Components::Transform &parentTransform) {
-	const Math::Matrix4 identity	= Math::Matrix4Identity();
-	const Math::Matrix4 scale		= Math::Scale(identity, transform.scale);
-	Math::Matrix4		rotation	= Math::Rotate(identity, transform.rotation.y, Math::Vector3(0.0f, 1.0f, 0.0f));
-	rotation						= Math::Rotate(rotation, transform.rotation.x, Math::Vector3(1.0f, 0.0f, 0.0f));
-	rotation						= Math::Rotate(rotation, transform.rotation.z, Math::Vector3(0.0f, 0.0f, 1.0f));
-	const Math::Matrix4 translation = Math::Translate(identity, transform.position);
+	const Math::Mat44 identity	  = Math::Mat44Identity();
+	const Math::Mat44 scale		  = Math::Scale(identity, transform.scale);
+	Math::Mat44		  rotation	  = Math::Rotate(identity, transform.rotation.y, Math::Vec3(0.0f, 1.0f, 0.0f));
+	rotation					  = Math::Rotate(rotation, transform.rotation.x, Math::Vec3(1.0f, 0.0f, 0.0f));
+	rotation					  = Math::Rotate(rotation, transform.rotation.z, Math::Vec3(0.0f, 0.0f, 1.0f));
+	const Math::Mat44 translation = Math::Translate(identity, transform.position);
 
 	transform.localMatrix = translation * rotation * scale;
 	transform.worldMatrix = parentTransform.worldMatrix * transform.localMatrix;

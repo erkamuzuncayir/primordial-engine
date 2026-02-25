@@ -22,7 +22,7 @@ public:
 	[[nodiscard]] ECS::EntityID GetActiveCameraEntityID() const { return m_activeCamera; }
 	void						MarkDirty(ECS::EntityID entityID) const;
 	void						OnResize(float aspectRatio) const;
-	[[nodiscard]] Math::Matrix4 UpdateViewMatrix(const Scene::Components::Transform &transform) const;
+	[[nodiscard]] Math::Mat44	UpdateViewMatrix(const Scene::Components::Transform &transform) const;
 
 private:
 	ECS::EntityManager *ref_eM			= nullptr;

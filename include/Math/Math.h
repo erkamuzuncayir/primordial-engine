@@ -1,4 +1,6 @@
 #pragma once
+
+#include <cfloat>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -10,114 +12,212 @@
 // GLM_FORCE_DEPTH_ZERO_TO_ONE
 
 namespace PE::Math {
-using Vector2	 = glm::vec2;
-using Vector3	 = glm::vec3;
-using Vector4	 = glm::vec4;
-using Matrix3	 = glm::mat3;
-using Matrix4	 = glm::mat4;
-using Quaternion = glm::quat;
+// ============================================================================
+// 1. GENERAL / GRAPHICS MATH TYPES (Strictly 32-bit / Float)
+// ============================================================================
+using Vec2	= glm::vec2;
+using Vec3	= glm::vec3;
+using Vec4	= glm::vec4;
+using Mat33 = glm::mat3;
+using Mat44 = glm::mat4;
+using Quat	= glm::quat;
 
-// --- Static Members --- //
-static const Vector3   Vector3Zero	  = Vector3(0.0f, 0.0f, 0.0f);
-static const Vector3   Vector3One	  = Vector3(1.0f, 1.0f, 1.0f);
-static const Vector3   Vector3Up	  = Vector3(0.0f, 1.0f, 0.0f);
-static const Vector3   Vector3Right	  = Vector3(1.0f, 0.0f, 0.0f);
-static const Vector3   Vector3Forward = Vector3(0.0f, 0.0f, 1.0f);
-static constexpr float Infinity		  = FLT_MAX;
-static constexpr float PI			  = 3.1415926535f;
-static constexpr float TAU			  = 2.0f * PI;
+static constexpr float Infinity = FLT_MAX;
+static constexpr float PI		= 3.1415926535f;
+static constexpr float TAU		= 2.0f * PI;
 
-// --- Angle Operations ---
-inline float Radians(const float degrees) { return glm::radians(degrees); }
-inline float Degrees(const float radians) { return glm::degrees(radians); }
+static const Vec3 Vec3Zero	  = Vec3(0.0f, 0.0f, 0.0f);
+static const Vec3 Vec3One	  = Vec3(1.0f, 1.0f, 1.0f);
+static const Vec3 Vec3Up	  = Vec3(0.0f, 1.0f, 0.0f);
+static const Vec3 Vec3Right	  = Vec3(1.0f, 0.0f, 0.0f);
+static const Vec3 Vec3Forward = Vec3(0.0f, 0.0f, 1.0f);
 
-// --- Float Operations ---
-inline float Abs(const float x) { return glm::abs(x); }
+inline Mat44 Mat44Identity() { return Mat44(1.0f); }
+// ============================================================================
+// 2. PHYSICS MATH TYPES (Toggled Precision - 'R' Prefix)
+// ============================================================================
+#ifdef PE_PHYSICS_USE_DOUBLE_PRECISION
+using real	 = double;
+using RVec2	 = glm::dvec2;
+using RVec3	 = glm::dvec3;
+using RVec4	 = glm::dvec4;
+using RMat33 = glm::dmat3;
+using RMat44 = glm::dmat4;
+using RQuat	 = glm::dquat;
 
-// --- Vector Operations ---
-inline Vector3 Vec3Radians(const Vector3 degrees) {
-	return {glm::radians(degrees.x), glm::radians(degrees.y), glm::radians(degrees.z)};
-};
+static constexpr real RInfinity = DBL_MAX;
+#else
+using real	 = float;
+using RVec2	 = glm::vec2;
+using RVec3	 = glm::vec3;
+using RVec4	 = glm::vec4;
+using RMat33 = glm::mat3;
+using RMat44 = glm::mat4;
+using RQuat	 = glm::quat;
 
-inline Vector3 Vec3Degrees(const Vector3 radians) {
-	return {glm::degrees(radians.x), glm::degrees(radians.y), glm::degrees(radians.z)};
-};
+static constexpr real RInfinity = FLT_MAX;
+#endif
 
-inline float   Dot(const Vector3 &x, const Vector3 &y) { return glm::dot(x, y); }
-inline Vector3 Cross(const Vector3 &x, const Vector3 &y) { return glm::cross(x, y); }
-inline Vector3 Normalize(const Vector3 &x) { return glm::normalize(x); }
-inline float   Length(const Vector3 &x) { return glm::length(x); }
-inline float   Vector3Distance(const Vector3 &p0, const Vector3 &p1) { return glm::distance(p0, p1); }
-inline float   LengthSq(const Vector3 &x) { return glm::length2(x); }
+static constexpr real RPI  = static_cast<real>(3.14159265358979323846);
+static constexpr real RTAU = static_cast<real>(2.0) * RPI;
+
+static const RVec3 RVec3Zero	= RVec3(static_cast<real>(0.0));
+static const RVec3 RVec3One		= RVec3(static_cast<real>(1.0));
+static const RVec3 RVec3Up		= RVec3(static_cast<real>(0.0), static_cast<real>(1.0), static_cast<real>(0.0));
+static const RVec3 RVec3Right	= RVec3(static_cast<real>(1.0), static_cast<real>(0.0), static_cast<real>(0.0));
+static const RVec3 RVec3Forward = RVec3(static_cast<real>(0.0), static_cast<real>(0.0), static_cast<real>(1.0));
+
+inline RMat44 RMat44Identity() { return RMat44(1.0f); }
+// ============================================================================
+// 3. UNIFIED TEMPLATED MATH OPERATIONS
+// ============================================================================
+
+// --- Scalar & Vector Operations ---
+template <typename T>
+auto Radians(const T &val) {
+	return glm::radians(val);
+}
+
+template <typename T>
+auto Degrees(const T &val) {
+	return glm::degrees(val);
+}
+
+template <typename T>
+auto Abs(const T &val) {
+	return glm::abs(val);
+}
+
+template <typename VecT>
+auto Dot(const VecT &x, const VecT &y) {
+	return glm::dot(x, y);
+}
+
+template <typename VecT>
+auto Cross(const VecT &x, const VecT &y) {
+	return glm::cross(x, y);
+}
+
+template <typename VecT>
+auto Normalize(const VecT &x) {
+	return glm::normalize(x);
+}
+
+template <typename VecT>
+auto Length(const VecT &x) {
+	return glm::length(x);
+}
+
+template <typename VecT>
+auto Distance(const VecT &p0, const VecT &p1) {
+	return glm::distance(p0, p1);
+}
+
+template <typename VecT>
+auto LengthSq(const VecT &x) {
+	return glm::length2(x);
+}
 
 // --- Matrix Operations ---
-inline Matrix4 Matrix4Identity() { return {1.0f}; }
-inline Matrix4 Transpose(const Matrix4 &m) { return glm::transpose(m); }
-inline Matrix4 Inverse(const Matrix4 &m) { return glm::inverse(m); }
-inline Matrix4 InverseTranspose(const Matrix4 &M);
-inline Matrix4 Translate(const Matrix4 &m, const Vector3 &v) { return glm::translate(m, v); }
-inline Matrix4 Rotate(const Matrix4 &m, const float angle, const Vector3 &axis) { return glm::rotate(m, angle, axis); }
-inline Matrix4 Scale(const Matrix4 &m, const Vector3 &v) { return glm::scale(m, v); }
+template <typename MatT>
+auto Transpose(const MatT &m) {
+	return glm::transpose(m);
+}
 
-inline Matrix4 Perspective(const float fovY, const float aspect, const float nearZ, const float farZ) {
+template <typename MatT>
+auto Inverse(const MatT &m) {
+	return glm::inverse(m);
+}
+
+template <typename MatT>
+MatT InverseTranspose(const MatT &M) {
+	MatT A		 = M;
+	using Scalar = MatT::value_type;
+	A[3]		 = glm::vec<4, Scalar, glm::defaultp>(0, 0, 0, 1);
+	return glm::transpose(glm::inverse(A));
+}
+
+template <typename MatT, typename VecT>
+auto Translate(const MatT &m, const VecT &v) {
+	return glm::translate(m, v);
+}
+
+template <typename MatT, typename Scalar, typename VecT>
+auto Rotate(const MatT &m, const Scalar angle, const VecT &axis) {
+	return glm::rotate(m, angle, axis);
+}
+
+template <typename MatT, typename VecT>
+auto Scale(const MatT &m, const VecT &v) {
+	return glm::scale(m, v);
+}
+
+// --- Camera & Projection Matrices ---
+template <typename Scalar>
+auto Perspective(const Scalar fovY, const Scalar aspect, const Scalar nearZ, const Scalar farZ) {
 	return glm::perspective(fovY, aspect, nearZ, farZ);
 }
 
-inline Matrix4 Mat4Ortho(float left, float right, float bottom, float top, float zNear, float zFar) {
+template <typename Scalar>
+auto Mat4Ortho(Scalar left, Scalar right, Scalar bottom, Scalar top, Scalar zNear, Scalar zFar) {
 	return glm::ortho(left, right, bottom, top, zNear, zFar);
 }
 
-inline Matrix4 Mat4LookAt(const Vector3 &eye, const Vector3 &center, const Vector3 &up) {
+template <typename VecT>
+auto Mat4LookAt(const VecT &eye, const VecT &center, const VecT &up) {
 	return glm::lookAt(eye, center, up);
 }
 
+// --- Direction Vectors ---
+template <typename VecT>
 struct DirectionVectors {
-	Vector3 Right;
-	Vector3 Up;
-	Vector3 Forward;
+	VecT Right;
+	VecT Up;
+	VecT Forward;
 };
 
-inline Vector3 CalculateForwardVector(const Vector3 &rotation) {
-	Matrix4 rotMat = Matrix4Identity();
-	rotMat		   = Rotate(rotMat, rotation.y, Vector3(0, 1, 0));	// Yaw
-	rotMat		   = Rotate(rotMat, rotation.x, Vector3(1, 0, 0));	// Pitch
-	rotMat		   = Rotate(rotMat, rotation.z, Vector3(0, 0, 1));	// Roll
-
-	return {rotMat[2]};
+template <typename VecT>
+VecT CalculateForwardVector(const VecT &rotation) {
+	using Scalar = typename VecT::value_type;
+	glm::mat<4, 4, Scalar, glm::defaultp> rotMat(1.0);
+	rotMat = Rotate(rotMat, rotation.y, VecT(Scalar(0), Scalar(1), Scalar(0)));
+	rotMat = Rotate(rotMat, rotation.x, VecT(Scalar(1), Scalar(0), Scalar(0)));
+	rotMat = Rotate(rotMat, rotation.z, VecT(Scalar(0), Scalar(0), Scalar(1)));
+	return VecT(rotMat[2]);
 }
 
-inline Vector3 CalculateRightVector(const Vector3 &rotation) {
-	Matrix4 rotMat = Matrix4Identity();
-	rotMat		   = Rotate(rotMat, rotation.y, Vector3(0, 1, 0));
-	rotMat		   = Rotate(rotMat, rotation.x, Vector3(1, 0, 0));
-	rotMat		   = Rotate(rotMat, rotation.z, Vector3(0, 0, 1));
-
-	return {rotMat[0]};
+template <typename VecT>
+VecT CalculateRightVector(const VecT &rotation) {
+	using Scalar = typename VecT::value_type;
+	glm::mat<4, 4, Scalar, glm::defaultp> rotMat(1.0);
+	rotMat = Rotate(rotMat, rotation.y, VecT(Scalar(0), Scalar(1), Scalar(0)));
+	rotMat = Rotate(rotMat, rotation.x, VecT(Scalar(1), Scalar(0), Scalar(0)));
+	rotMat = Rotate(rotMat, rotation.z, VecT(Scalar(0), Scalar(0), Scalar(1)));
+	return VecT(rotMat[0]);
 }
 
-inline Vector3 CalculateUpVector(const Vector3 &rotation) {
-	Matrix4 rotMat = Matrix4Identity();
-	rotMat		   = Rotate(rotMat, rotation.y, Vector3(0, 1, 0));
-	rotMat		   = Rotate(rotMat, rotation.x, Vector3(1, 0, 0));
-	rotMat		   = Rotate(rotMat, rotation.z, Vector3(0, 0, 1));
-
-	return {rotMat[1]};
+template <typename VecT>
+VecT CalculateUpVector(const VecT &rotation) {
+	using Scalar = typename VecT::value_type;
+	glm::mat<4, 4, Scalar, glm::defaultp> rotMat(1.0);
+	rotMat = Rotate(rotMat, rotation.y, VecT(Scalar(0), Scalar(1), Scalar(0)));
+	rotMat = Rotate(rotMat, rotation.x, VecT(Scalar(1), Scalar(0), Scalar(0)));
+	rotMat = Rotate(rotMat, rotation.z, VecT(Scalar(0), Scalar(0), Scalar(1)));
+	return VecT(rotMat[1]);
 }
 
-inline DirectionVectors CalculateDirectionVectors(const Vector3 &rotation) {
-	Matrix4 rotMat = Matrix4Identity();
-	rotMat		   = Rotate(rotMat, rotation.y, Vector3(0, 1, 0));
-	rotMat		   = Rotate(rotMat, rotation.x, Vector3(1, 0, 0));
-	rotMat		   = Rotate(rotMat, rotation.z, Vector3(0, 0, 1));
+template <typename VecT>
+DirectionVectors<VecT> CalculateDirectionVectors(const VecT &rotation) {
+	using Scalar = typename VecT::value_type;
+	glm::mat<4, 4, Scalar, glm::defaultp> rotMat(1.0);
+	rotMat = Rotate(rotMat, rotation.y, VecT(Scalar(0), Scalar(1), Scalar(0)));
+	rotMat = Rotate(rotMat, rotation.x, VecT(Scalar(1), Scalar(0), Scalar(0)));
+	rotMat = Rotate(rotMat, rotation.z, VecT(Scalar(0), Scalar(0), Scalar(1)));
 
-	return {
-		Vector3(rotMat[0]),	 // Right
-		Vector3(rotMat[1]),	 // Up
-		Vector3(rotMat[2])	 // Forward
-	};
+	return {VecT(rotMat[0]), VecT(rotMat[1]), VecT(rotMat[2])};
 }
 
-// HELPER FUNCTIONS
+// --- Core Math Helpers ---
 template <typename T>
 static T Min(const T &a, const T &b) {
 	return a < b ? a : b;
@@ -128,8 +228,8 @@ static T Max(const T &a, const T &b) {
 	return a > b ? a : b;
 }
 
-template <typename T>
-static T Lerp(const T &a, const T &b, float t) {
+template <typename T, typename Scalar = T>
+static T Lerp(const T &a, const T &b, Scalar t) {
 	return a + (b - a) * t;
 }
 
