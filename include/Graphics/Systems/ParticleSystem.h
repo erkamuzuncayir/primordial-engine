@@ -15,7 +15,7 @@ public:
 	void	   OnUpdate(float dt) override;
 
 private:
-	ECS::ECSManager *ref_eM		 = nullptr;
-	IRenderer		   *ref_renderer = nullptr;
+	ECS::ECSManager *ref_eM		  = nullptr;
+	IRenderer		*ref_renderer = nullptr;
 };
 }  // namespace PE::Graphics::Systems

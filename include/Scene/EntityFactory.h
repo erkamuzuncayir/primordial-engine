@@ -11,7 +11,7 @@ public:
 	[[nodiscard]] static ECS::EntityID CreatePrimitive(Graphics::PrimitiveType type);
 
 private:
-	static inline ECS::ECSManager *ref_eM		  = nullptr;
-	static inline bool				  m_isInitialized = false;
+	static inline ECS::ECSManager *ref_eM		   = nullptr;
+	static inline bool			   m_isInitialized = false;
 };
 }  // namespace PE::Scene

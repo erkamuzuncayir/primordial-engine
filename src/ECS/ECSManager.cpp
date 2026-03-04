@@ -4,19 +4,17 @@
 #include "Utilities/MemoryUtilities.h"
 
 namespace PE::ECS {
-ERROR_CODE ECSManager::Initialize(uint32_t maxEntities, uint32_t maxComponentTypes) {
+ERROR_CODE ECSManager::Initialize(const Core::EngineConfig &config) {
 	PE_CHECK_STATE_INIT(m_state, "Entity manager is already initialized");
 	m_state = SystemState::Initializing;
 
-	ref_maxEntities		  = maxEntities;
-	ref_maxComponentTypes = maxComponentTypes;
-
-	m_allComponentIndices.assign(maxEntities * maxComponentTypes, UINT32_MAX);
+	ref_config = &config;
+	m_allComponentIndices.assign(ref_config->maxEntityCount * ref_config->maxComponentTypeCount, UINT32_MAX);
 	m_componentArrays.clear();
-	m_componentArrays.resize(maxComponentTypes);
+	m_componentArrays.resize(ref_config->maxComponentTypeCount);
 
 	while (!m_freeEntities.empty()) m_freeEntities.pop();
-	for (EntityID i = 0; i < maxEntities; ++i) m_freeEntities.push(maxEntities - 1 - i);
+	for (EntityID i = 0; i < ref_config->maxEntityCount; ++i) m_freeEntities.push(ref_config->maxEntityCount - 1 - i);
 
 	ERROR_CODE result = ERROR_CODE::OK;
 	PE_CHECK(result, Scene::EntityFactory::Initialize(this));
@@ -26,18 +24,18 @@ ERROR_CODE ECSManager::Initialize(uint32_t maxEntities, uint32_t maxComponentTyp
 }
 
 void ECSManager::Update(const float dt) {
-	// TODO: Currently not used, but will use.
-	//     for (auto const &stageVec : m_systems)
-	//         for (auto &sys : stageVec)
-	//             sys->OnUpdate(dt);
+	for (auto const &stageVec : m_systems)
+		for (auto &sys : stageVec) sys->OnUpdate(dt);
 }
 
 ERROR_CODE ECSManager::Shutdown() {
 	if (m_state == SystemState::Uninitialized || m_state == SystemState::ShuttingDown) return ERROR_CODE::OK;
 	m_state = SystemState::ShuttingDown;
 
-	for (auto const &stageVec : m_systems)
-		for (const auto &sys : stageVec) sys->Shutdown();
+	for (int i = static_cast<int>(ESystemStage::Count) - 1; i >= 0; --i) {
+		for (const auto &sys : m_systems[i])
+			if (sys) sys->Shutdown();
+	}
 
 	m_allComponentIndices.clear();
 	m_componentArrays.clear();
@@ -55,23 +53,23 @@ EntityID ECSManager::CreateEntity() {
 	const auto id = m_freeEntities.top();
 	m_freeEntities.pop();
 
-	for (uint32_t typeID = 0; typeID < ref_maxComponentTypes; ++typeID)
-		m_allComponentIndices[typeID * ref_maxEntities + id] = UINT32_MAX;
+	for (uint32_t typeID = 0; typeID < ref_config->maxComponentTypeCount; ++typeID)
+		m_allComponentIndices[typeID * ref_config->maxEntityCount + id] = UINT32_MAX;
 
 	return id;
 }
 
 ERROR_CODE ECSManager::DestroyEntity(EntityID id) {
-	if (id >= ref_maxEntities) {
+	if (id >= ref_config->maxEntityCount) {
 		PE_LOG_FATAL("Entity ID isn't correct.");
 		return ERROR_CODE::WRONG_ENTITY_ID;
 	}
 
-	for (uint32_t typeID = 0; typeID < ref_maxComponentTypes; ++typeID) {
-		if (const uint32_t idx = m_allComponentIndices[typeID * ref_maxEntities + id];
+	for (uint32_t typeID = 0; typeID < ref_config->maxComponentTypeCount; ++typeID) {
+		if (const uint32_t idx = m_allComponentIndices[typeID * ref_config->maxEntityCount + id];
 			idx != UINT32_MAX && m_componentArrays[typeID]->Has(idx)) {
 			m_componentArrays[typeID]->Remove(idx);
-			m_allComponentIndices[typeID * ref_maxEntities + id] = UINT32_MAX;
+			m_allComponentIndices[typeID * ref_config->maxEntityCount + id] = UINT32_MAX;
 		}
 	}
 
@@ -82,7 +80,7 @@ ERROR_CODE ECSManager::DestroyEntity(EntityID id) {
 void ECSManager::ClearAllEntities() {
 	PE_LOG_INFO("ECSManager: Clearing all entities and components...");
 
-	for (uint32_t typeID = 0; typeID < ref_maxComponentTypes; ++typeID) {
+	for (uint32_t typeID = 0; typeID < ref_config->maxComponentTypeCount; ++typeID) {
 		if (m_componentArrays[typeID]) {
 			m_componentArrays[typeID]->Clear();
 		}
@@ -92,8 +90,8 @@ void ECSManager::ClearAllEntities() {
 
 	while (!m_freeEntities.empty()) m_freeEntities.pop();
 
-	for (EntityID i = 0; i < ref_maxEntities; ++i) {
-		m_freeEntities.push(ref_maxEntities - 1 - i);
+	for (EntityID i = 0; i < ref_config->maxEntityCount; ++i) {
+		m_freeEntities.push(ref_config->maxEntityCount - 1 - i);
 	}
 
 	PE_LOG_INFO("ECSManager: All entities cleared.");

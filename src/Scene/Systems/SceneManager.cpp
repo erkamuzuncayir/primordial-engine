@@ -55,12 +55,11 @@ static constexpr SelectionBindingConfig SELECTION_CONFIGS[] = {
 	 Graphics::Systems::CameraType::CloseUp},
 };
 
-ERROR_CODE SceneManager::Initialize(ECS::ESystemStage stage, Core::Engine *application,
-										  ECS::ECSManager *entityManager, SceneLoader *sceneLoader,
-										  Input::InputSystem *inputSystem, TransformSystem *transformSystem,
-										  Graphics::Systems::CameraSystem *cameraSystem,
-										  Graphics::Systems::GUISystem *guiSystem, DayNightSystem *dayNightSystem,
-										  const Core::EngineConfig &config) {
+ERROR_CODE SceneManager::Initialize(ECS::ESystemStage stage, Core::Engine *application, ECS::ECSManager *entityManager,
+									SceneLoader *sceneLoader, Input::InputSystem *inputSystem,
+									TransformSystem *transformSystem, Graphics::Systems::CameraSystem *cameraSystem,
+									Graphics::Systems::GUISystem *guiSystem, DayNightSystem *dayNightSystem,
+									const Core::EngineConfig &config) {
 	PE_CHECK_STATE_INIT(m_state, "SceneControl system is already initialized!");
 	m_state = SystemState::Initializing;
 
@@ -76,24 +75,19 @@ ERROR_CODE SceneManager::Initialize(ECS::ESystemStage stage, Core::Engine *appli
 	ref_config			= &config;
 	m_stage				= stage;
 
-	ERROR_CODE result;
-	PE_CHECK(result, ref_eM->RegisterSystem(this));
-
 	m_subscribedInputActionIDs.clear();
 	m_moveStateStacks.reserve(static_cast<size_t>(MovementState::Count));
 
 	SetupInputBindings();
 
 	m_state = SystemState::Running;
-	return result;
+	return ERROR_CODE::OK;
 }
 
 ERROR_CODE SceneManager::Shutdown() {
 	if (m_state == SystemState::Uninitialized || m_state == SystemState::ShuttingDown) return ERROR_CODE::OK;
 	m_state = SystemState::ShuttingDown;
 
-	ERROR_CODE result;
-	PE_CHECK(result, ref_eM->UnregisterSystem(this));
 	m_stage	 = ECS::ESystemStage::Count;
 	m_typeID = UINT32_MAX;
 
@@ -103,7 +97,7 @@ ERROR_CODE SceneManager::Shutdown() {
 	m_subscribedInputActionIDs.clear();
 
 	m_state = SystemState::Uninitialized;
-	return result;
+	return ERROR_CODE::OK;
 }
 
 void SceneManager::OnUpdate(float dt) {

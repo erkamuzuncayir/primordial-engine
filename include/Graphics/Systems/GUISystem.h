@@ -8,13 +8,12 @@
 #include "Utilities/Timer.h"
 
 namespace PE::Graphics::Systems {
-class GUISystem : ECS::ISystem {
+class GUISystem : public ECS::ISystem {
 public:
 	GUISystem()			  = default;
 	~GUISystem() override = default;
 
-	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager,
-	                      IRenderer *       renderer);
+	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager, IRenderer *renderer);
 	ERROR_CODE Shutdown() override;
 	void	   OnUpdate(float dt) override;
 	void	   ToggleGUI();
@@ -30,8 +29,8 @@ private:
 	void DrawEntityNodeRecursive(uint32_t													entityID,
 								 const std::unordered_map<uint32_t, std::vector<uint32_t>> &childrenMap);
 
-	ECS::ECSManager *ref_eM		 = nullptr;
-	IRenderer		   *ref_renderer = nullptr;
+	ECS::ECSManager *ref_eM		  = nullptr;
+	IRenderer		*ref_renderer = nullptr;
 
 	Utilities::Timer *m_fpsTimer	   = nullptr;
 	bool			  m_shouldRender   = true;

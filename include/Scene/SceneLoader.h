@@ -107,7 +107,7 @@ private:
 	void FinalizeHierarchy();
 	void FinalizeDayNightCycle();
 
-	ECS::ECSManager			 *ref_eM	   = nullptr;
+	ECS::ECSManager				 *ref_eM	   = nullptr;
 	const Graphics::RenderConfig *ref_config   = nullptr;
 	Graphics::IRenderer			 *ref_renderer = nullptr;
 

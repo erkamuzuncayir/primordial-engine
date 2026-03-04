@@ -31,7 +31,7 @@ enum class MovementState : uint8_t {
 
 class SceneManager : public ECS::ISystem {
 public:
-	SceneManager()		   = default;
+	SceneManager()			 = default;
 	~SceneManager() override = default;
 	ERROR_CODE Initialize(ECS::ESystemStage stage, Core::Engine *application, ECS::ECSManager *entityManager,
 						  SceneLoader *sceneLoader, Input::InputSystem *inputSystem, TransformSystem *transformSystem,
@@ -49,7 +49,7 @@ private:
 	void CleanupInputBindings();
 
 	Core::Engine					*ref_application	 = nullptr;
-	ECS::ECSManager				*ref_eM				 = nullptr;
+	ECS::ECSManager					*ref_eM				 = nullptr;
 	Input::InputSystem				*ref_inputSystem	 = nullptr;
 	SceneLoader						*ref_sceneLoader	 = nullptr;
 	Graphics::Systems::CameraSystem *ref_cameraSystem	 = nullptr;
