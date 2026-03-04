@@ -7,7 +7,7 @@
 #include "Scene/Components/Transform.h"
 
 namespace PE::Scene::Systems {
-ERROR_CODE TransformSystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManager *entityManager,
+ERROR_CODE TransformSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager,
 									   Input::InputSystem *inputSystem, Graphics::Systems::CameraSystem *cameraSystem,
 									   const Core::EngineConfig &config) {
 	PE_CHECK_STATE_INIT(m_state, "Transform system is already initialized!");

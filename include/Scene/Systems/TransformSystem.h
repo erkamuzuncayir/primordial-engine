@@ -2,7 +2,7 @@
 
 #include "../Components/Transform.h"
 #include "Core/EngineConfig.h"
-#include "ECS/EntityManager.h"
+#include "ECS/ECSManager.h"
 #include "ECS/ISystem.h"
 #include "Graphics/Systems/CameraSystem.h"
 #include "Input/InputSystem.h"
@@ -18,7 +18,7 @@ public:
 	TransformSystem &operator=(TransformSystem &&)		= delete;
 	~TransformSystem() override							= default;
 
-	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::EntityManager *entityManager, Input::InputSystem *inputSystem,
+	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager, Input::InputSystem *inputSystem,
 						  Graphics::Systems::CameraSystem *cameraSystem, const Core::EngineConfig &config);
 	ERROR_CODE Shutdown() override;
 
@@ -49,7 +49,7 @@ private:
 	void DFSRebuild(uint32_t entityID, uint32_t currentParentPackedIndex, const std::vector<std::vector<uint32_t>> &adj,
 					std::vector<Components::Transform> &sortedData, std::vector<uint32_t> &sortedEntities);
 
-	ECS::EntityManager		 *ref_eM	 = nullptr;
+	ECS::ECSManager		 *ref_eM	 = nullptr;
 	const Core::EngineConfig *ref_config = nullptr;
 
 	bool	 m_isHierarchyDirty	  = true;

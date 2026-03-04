@@ -21,7 +21,7 @@ ERROR_CODE Engine::Initialize(Platform::PlatformSystem *platformSystem, EngineCo
 	ref_inputSystem	   = inputSystem;
 
 	ERROR_CODE result;
-	m_entityManager = new ECS::EntityManager();
+	m_entityManager = new ECS::ECSManager();
 	m_sceneLoader	= new Scene::SceneLoader();
 
 	// Initialize Internal

@@ -1,5 +1,5 @@
 #pragma once
-#include "ECS/EntityManager.h"
+#include "ECS/ECSManager.h"
 #include "ECS/ISystem.h"
 #include "Scene/Components/DayNightCycle.h"
 
@@ -9,7 +9,7 @@ public:
 	DayNightSystem()		   = default;
 	~DayNightSystem() override = default;
 
-	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::EntityManager *entityManager);
+	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager);
 	ERROR_CODE Shutdown() override;
 	void	   OnUpdate(float dt) override;
 	void	   IncreaseCycleDayDuration() const;
@@ -21,7 +21,7 @@ private:
 	void	   UpdateEnvironmentalEffects(Components::DayNightCycle &cycle, float dt);
 	Math::Vec4 CalculateLightColor(float sunHeight, const Components::DayNightCycle &cycle);
 
-	ECS::EntityManager *ref_eM = nullptr;
+	ECS::ECSManager *ref_eM = nullptr;
 
 	static constexpr float MaxDayDuration = 60.0f;
 	static constexpr float MinDayDuration = 1.0f;

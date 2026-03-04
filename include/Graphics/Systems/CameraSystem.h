@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ECS/EntityManager.h"
+#include "ECS/ECSManager.h"
 #include "Graphics/RenderConfig.h"
 #include "Input/InputSystem.h"
 #include "Scene/Components/Transform.h"
@@ -13,7 +13,7 @@ public:
 	CameraSystem()			 = default;
 	~CameraSystem() override = default;
 
-	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::EntityManager *entityManager, Input::InputSystem *inputSystem,
+	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager, Input::InputSystem *inputSystem,
 						  const RenderConfig &renderConfig);
 	ERROR_CODE Shutdown() override;
 	void	   OnUpdate(float dt) override;
@@ -25,7 +25,7 @@ public:
 	[[nodiscard]] Math::Mat44	UpdateViewMatrix(const Scene::Components::Transform &transform) const;
 
 private:
-	ECS::EntityManager *ref_eM			= nullptr;
+	ECS::ECSManager *ref_eM			= nullptr;
 	Input::InputSystem *ref_inputSystem = nullptr;
 	ECS::EntityID		m_activeCamera	= ECS::INVALID_ENTITY_ID;
 };

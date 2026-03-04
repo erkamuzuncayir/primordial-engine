@@ -25,7 +25,7 @@ struct DayNightCycle;
 using namespace PE::Utilities;
 using namespace PE::Graphics;
 
-ERROR_CODE SceneLoader::Initialize(ECS::EntityManager *em, const RenderConfig &config, IRenderer *renderer) {
+ERROR_CODE SceneLoader::Initialize(ECS::ECSManager *em, const RenderConfig &config, IRenderer *renderer) {
 	ref_eM		 = em;
 	ref_config	 = &config;
 	ref_renderer = renderer;

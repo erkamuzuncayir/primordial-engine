@@ -9,7 +9,7 @@
 namespace PE::Graphics::Systems {
 float RandomFloat() { return (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * 2.0f - 1.0f; }
 
-ERROR_CODE ParticleSystem::Initialize(ECS::ESystemStage stage, ECS::EntityManager *entityManager, IRenderer *renderer) {
+ERROR_CODE ParticleSystem::Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager, IRenderer *renderer) {
 	PE_CHECK_STATE_INIT(m_state, "Particle system is already initialized!");
 	m_state = SystemState::Initializing;
 

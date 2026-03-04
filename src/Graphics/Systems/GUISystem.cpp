@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "Assets/AssetManager.h"
-#include "ECS/EntityManager.h"
+#include "ECS/ECSManager.h"
 #include "Graphics/Components/Camera.h"
 #include "Graphics/Components/DirectionalLight.h"
 #include "Graphics/Components/MeshRenderer.h"
@@ -27,7 +27,7 @@ struct DirectionalLight;
 }
 
 namespace PE::Graphics::Systems {
-ERROR_CODE GUISystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManager *entityManager,
+ERROR_CODE GUISystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager,
 								 Scene::Systems::SceneControlSystem *sceneControlSystem, IRenderer *renderer) {
 	PE_CHECK_STATE_INIT(m_state, "GUI system is already initialized!");
 	m_state = SystemState::Initializing;

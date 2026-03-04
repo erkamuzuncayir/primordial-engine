@@ -4,7 +4,7 @@
 #include "Graphics/Components/Camera.h"
 
 namespace PE::Graphics::Systems {
-ERROR_CODE CameraSystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManager *entityManager,
+ERROR_CODE CameraSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager,
 									Input::InputSystem *inputSystem, const RenderConfig &renderConfig) {
 	PE_CHECK_STATE_INIT(m_state, "Render system is already initialized!");
 	m_state = SystemState::Initializing;

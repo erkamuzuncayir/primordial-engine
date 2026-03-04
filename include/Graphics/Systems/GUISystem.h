@@ -13,7 +13,7 @@ public:
 	GUISystem()			  = default;
 	~GUISystem() override = default;
 
-	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::EntityManager *entityManager,
+	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager,
 						  Scene::Systems::SceneControlSystem *sceneControlSystem, IRenderer *renderer);
 	ERROR_CODE Shutdown() override;
 	void	   OnUpdate(float dt) override;
@@ -30,7 +30,7 @@ private:
 	void DrawEntityNodeRecursive(uint32_t													entityID,
 								 const std::unordered_map<uint32_t, std::vector<uint32_t>> &childrenMap);
 
-	ECS::EntityManager *ref_eM		 = nullptr;
+	ECS::ECSManager *ref_eM		 = nullptr;
 	IRenderer		   *ref_renderer = nullptr;
 
 	Utilities::Timer *m_fpsTimer	   = nullptr;

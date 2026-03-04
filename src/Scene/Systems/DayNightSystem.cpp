@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "ECS/EntityManager.h"
+#include "ECS/ECSManager.h"
 #include "Graphics/Components/DirectionalLight.h"
 #include "Graphics/Components/ParticleEmitter.h"
 #include "Math/Math.h"
@@ -10,7 +10,7 @@
 #include "Scene/Components/Transform.h"
 
 namespace PE::Scene::Systems {
-ERROR_CODE DayNightSystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManager *entityManager) {
+ERROR_CODE DayNightSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager) {
 	m_stage = stage;
 	ref_eM	= entityManager;
 	return ERROR_CODE::OK;
