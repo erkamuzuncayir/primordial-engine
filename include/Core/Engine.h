@@ -10,7 +10,7 @@
 #include "Platform/PlatformSystem.h"
 #include "Scene/SceneLoader.h"
 #include "Scene/Systems/DayNightSystem.h"
-#include "Scene/Systems/SceneControlSystem.h"
+#include "Scene/Systems/SceneManager.h"
 #include "Scene/Systems/TransformSystem.h"
 
 namespace PE::Core {
@@ -45,7 +45,7 @@ private:
 	Graphics::Systems::CameraSystem	   *m_cameraSystem		 = nullptr;
 	Graphics::Systems::GUISystem	   *m_guiSystem			 = nullptr;
 	Scene::Systems::TransformSystem	   *m_transformSystem	 = nullptr;
-	Scene::Systems::SceneControlSystem *m_sceneControlSystem = nullptr;
+	Scene::Systems::SceneManager *m_sceneManager = nullptr;
 	Scene::SceneLoader				   *m_sceneLoader		 = nullptr;
 	Scene::Systems::DayNightSystem	   *m_dayNightSystem	 = nullptr;
 

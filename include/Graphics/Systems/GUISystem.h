@@ -4,7 +4,7 @@
 #include "ECS/ISystem.h"
 #include "Graphics/IRenderer.h"
 #include "RenderSystem.h"
-#include "Scene/Systems/SceneControlSystem.h"
+#include "Scene/Systems/SceneManager.h"
 #include "Utilities/Timer.h"
 
 namespace PE::Graphics::Systems {
@@ -14,7 +14,7 @@ public:
 	~GUISystem() override = default;
 
 	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager,
-						  Scene::Systems::SceneControlSystem *sceneControlSystem, IRenderer *renderer);
+						  Scene::Systems::SceneManager *sceneControlSystem, IRenderer *renderer);
 	ERROR_CODE Shutdown() override;
 	void	   OnUpdate(float dt) override;
 	void	   ToggleGUI();
