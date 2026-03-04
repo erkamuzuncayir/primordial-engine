@@ -22,7 +22,6 @@ ERROR_CODE Engine::Initialize(Platform::PlatformSystem *platformSystem, EngineCo
 
 	ERROR_CODE result;
 	m_ecsManager  = new ECS::ECSManager();
-	m_sceneLoader = new Scene::SceneLoader();
 
 	// Initialize Internal
 	PE_ENSURE_INIT_SILENT(result, m_ecsManager->Initialize(config));
@@ -30,16 +29,16 @@ ERROR_CODE Engine::Initialize(Platform::PlatformSystem *platformSystem, EngineCo
 	PE_ENSURE_INIT_SILENT(result, InitializeSystems(config, window));
 
 	// Initialize Assets
-	PE_ENSURE_INIT_SILENT(result, Assets::AssetManager::Initialize(m_renderSystem->GetRenderer(), config));
-	PE_ENSURE_INIT_SILENT(result, m_renderSystem->GetRenderer()->CreateDefaultResources());
+	PE_ENSURE_INIT_SILENT(result, Assets::AssetManager::Initialize(m_renderSystem.GetRenderer(), config));
+	PE_ENSURE_INIT_SILENT(result, m_renderSystem.GetRenderer()->CreateDefaultResources());
 
 	// Initialize Demo Scene
 	PE_ENSURE_INIT_SILENT(result,
-						  m_sceneLoader->Initialize(m_ecsManager, config.renderConfig, m_renderSystem->GetRenderer()));
+						  m_sceneLoader.Initialize(m_ecsManager, config.renderConfig, m_renderSystem.GetRenderer()));
 	const std::filesystem::path demoScenePath =
 		std::filesystem::path("demo-scenes") / "desert-globe" / "desert-globe.ini";
-	m_sceneLoader->LoadScene(Utilities::IOUtilities::GetAssetPath(demoScenePath.string()));
-	m_sceneManager->SelectControlledEntity(Graphics::Systems::CameraType::Overview);
+	m_sceneLoader.LoadScene(Utilities::IOUtilities::GetAssetPath(demoScenePath.string()));
+	m_sceneManager.SelectControlledEntity(Graphics::Systems::CameraType::Overview);
 
 	m_state = SystemState::Running;
 	return result;
@@ -48,45 +47,37 @@ ERROR_CODE Engine::Initialize(Platform::PlatformSystem *platformSystem, EngineCo
 ERROR_CODE Engine::InitializeSystems(EngineConfig &config, GLFWwindow *window) {
 	ERROR_CODE result;
 	// TODO: Remove and move to game logic
-	m_dayNightSystem = new Scene::Systems::DayNightSystem();
-	PE_ENSURE_INIT(result, m_dayNightSystem->Initialize(ECS::ESystemStage::GameLogic, m_ecsManager),
+	PE_ENSURE_INIT(result, m_dayNightSystem.Initialize(ECS::ESystemStage::GameLogic, m_ecsManager),
 				   "Scene control system can't initialized.");
-	m_transformSystem = new Scene::Systems::TransformSystem();
 	PE_ENSURE_INIT(result,
-				   m_transformSystem->Initialize(ECS::ESystemStage::Transform, m_ecsManager, ref_inputSystem,
-												 m_cameraSystem, config),
+				   m_transformSystem.Initialize(ECS::ESystemStage::Transform, m_ecsManager, ref_inputSystem,
+					   &m_cameraSystem, config),
 				   "Transform system can't initialized.");
-
-	m_cameraSystem = new Graphics::Systems::CameraSystem();
 	PE_ENSURE_INIT(
 		result,
-		m_cameraSystem->Initialize(ECS::ESystemStage::Camera, m_ecsManager, ref_inputSystem, config.renderConfig),
+		m_cameraSystem.Initialize(ECS::ESystemStage::Camera, m_ecsManager, ref_inputSystem, config.renderConfig),
 		"Camera system can't initialized.");
-	m_renderSystem = new Graphics::Systems::RenderSystem();
 	PE_ENSURE_INIT(result,
-				   m_renderSystem->Initialize(ECS::ESystemStage::Render, m_ecsManager, m_cameraSystem, window, config),
+				   m_renderSystem.Initialize(ECS::ESystemStage::Render, m_ecsManager, &m_cameraSystem, window, config),
 				   "Render system can't initialized.");
-	m_particleSystem = new Graphics::Systems::ParticleSystem();
 	PE_ENSURE_INIT(
-		result, m_particleSystem->Initialize(ECS::ESystemStage::Particle, m_ecsManager, m_renderSystem->GetRenderer()),
+		result, m_particleSystem.Initialize(ECS::ESystemStage::Particle, m_ecsManager, m_renderSystem.GetRenderer()),
 		"Render system can't initialized.");
-	m_guiSystem = new Graphics::Systems::GUISystem();
-	PE_ENSURE_INIT(result, m_guiSystem->Initialize(ECS::ESystemStage::GUI, m_ecsManager, m_renderSystem->GetRenderer()),
+	PE_ENSURE_INIT(result, m_guiSystem.Initialize(ECS::ESystemStage::GUI, m_ecsManager, m_renderSystem.GetRenderer()),
 				   "GUI System failed to initialize.");
-	m_sceneManager = new Scene::Systems::SceneManager();
 	PE_ENSURE_INIT(
 		result,
-		m_sceneManager->Initialize(ECS::ESystemStage::SceneManager, this, m_ecsManager, m_sceneLoader, ref_inputSystem,
-								   m_transformSystem, m_cameraSystem, m_guiSystem, m_dayNightSystem, config),
+		m_sceneManager.Initialize(ECS::ESystemStage::SceneManager, this, m_ecsManager, &m_sceneLoader, ref_inputSystem,
+			&m_transformSystem, &m_cameraSystem, &m_guiSystem, &m_dayNightSystem, config),
 		"Scene control system can't initialized.");
 
-	PE_CHECK(result, m_ecsManager->RegisterSystem(m_dayNightSystem));
-	PE_CHECK(result, m_ecsManager->RegisterSystem(m_sceneManager));
-	PE_CHECK(result, m_ecsManager->RegisterSystem(m_transformSystem));
-	PE_CHECK(result, m_ecsManager->RegisterSystem(m_cameraSystem));
-	PE_CHECK(result, m_ecsManager->RegisterSystem(m_particleSystem));
-	PE_CHECK(result, m_ecsManager->RegisterSystem(m_guiSystem));
-	PE_CHECK(result, m_ecsManager->RegisterSystem(m_renderSystem));
+	PE_CHECK(result, m_ecsManager->RegisterSystem(&m_dayNightSystem));
+	PE_CHECK(result, m_ecsManager->RegisterSystem(&m_sceneManager));
+	PE_CHECK(result, m_ecsManager->RegisterSystem(&m_transformSystem));
+	PE_CHECK(result, m_ecsManager->RegisterSystem(&m_cameraSystem));
+	PE_CHECK(result, m_ecsManager->RegisterSystem(&m_particleSystem));
+	PE_CHECK(result, m_ecsManager->RegisterSystem(&m_guiSystem));
+	PE_CHECK(result, m_ecsManager->RegisterSystem(&m_renderSystem));
 
 	return result;
 }

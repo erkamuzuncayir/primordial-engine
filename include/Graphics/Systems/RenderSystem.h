@@ -21,7 +21,7 @@ public:
 	ERROR_CODE Shutdown() override;
 
 	void OnUpdate(float dt) override;
-	void OnResize(const RenderConfig &config);
+	void OnResize(const RenderConfig &config) const;
 
 	template <typename T>
 	T *GetRenderer() const {
