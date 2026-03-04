@@ -14,7 +14,7 @@ public:
 	~GUISystem() override = default;
 
 	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager,
-						  Scene::Systems::SceneManager *sceneControlSystem, IRenderer *renderer);
+	                      IRenderer *       renderer);
 	ERROR_CODE Shutdown() override;
 	void	   OnUpdate(float dt) override;
 	void	   ToggleGUI();
