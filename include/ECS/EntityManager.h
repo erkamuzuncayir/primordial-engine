@@ -151,9 +151,6 @@ ERROR_CODE EntityManager::RemoveComponent(const EntityID entityID) {
 	// Clear the removed entity's mapping
 	m_allComponentIndices[typeID * ref_maxEntities + entityID] = UINT32_MAX;
 
-	// Update the mapping for the moved slot/entity
-	m_allComponentIndices[typeID * ref_maxEntities + movedSlot] = newPackedIdx;
-
 	return ERROR_CODE::OK;
 }
 
