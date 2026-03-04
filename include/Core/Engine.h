@@ -35,19 +35,19 @@ public:
 	[[nodiscard]] Graphics::Systems::RenderSystem *GetRenderSystem() const { return m_renderSystem; }
 
 private:
-	Assets::AssetManager			   *s_assetManager		 = nullptr;
-	Platform::PlatformSystem		   *ref_platformSystem	 = nullptr;
-	Input::InputSystem				   *ref_inputSystem		 = nullptr;
-	SystemState							m_state				 = SystemState::Uninitialized;
-	ECS::ECSManager				   *m_entityManager		 = nullptr;
-	Graphics::Systems::RenderSystem	   *m_renderSystem		 = nullptr;
-	Graphics::Systems::ParticleSystem  *m_particleSystem	 = nullptr;
-	Graphics::Systems::CameraSystem	   *m_cameraSystem		 = nullptr;
-	Graphics::Systems::GUISystem	   *m_guiSystem			 = nullptr;
-	Scene::Systems::TransformSystem	   *m_transformSystem	 = nullptr;
-	Scene::Systems::SceneManager *m_sceneManager = nullptr;
-	Scene::SceneLoader				   *m_sceneLoader		 = nullptr;
-	Scene::Systems::DayNightSystem	   *m_dayNightSystem	 = nullptr;
+	Assets::AssetManager			  *s_assetManager	  = nullptr;
+	Platform::PlatformSystem		  *ref_platformSystem = nullptr;
+	Input::InputSystem				  *ref_inputSystem	  = nullptr;
+	SystemState						   m_state			  = SystemState::Uninitialized;
+	ECS::ECSManager					  *m_ecsManager		  = nullptr;
+	Graphics::Systems::RenderSystem	  *m_renderSystem	  = nullptr;
+	Graphics::Systems::ParticleSystem *m_particleSystem	  = nullptr;
+	Graphics::Systems::CameraSystem	  *m_cameraSystem	  = nullptr;
+	Graphics::Systems::GUISystem	  *m_guiSystem		  = nullptr;
+	Scene::Systems::TransformSystem	  *m_transformSystem  = nullptr;
+	Scene::Systems::SceneManager	  *m_sceneManager	  = nullptr;
+	Scene::SceneLoader				  *m_sceneLoader	  = nullptr;
+	Scene::Systems::DayNightSystem	  *m_dayNightSystem	  = nullptr;
 
 	std::unordered_map<std::string, ECS::EntityID> m_nameEntityIDMap;
 };

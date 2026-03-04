@@ -11,7 +11,7 @@ enum class ESystemStage {
 	EarlyUpdate = 0,
 	GameLogic,	// TODO: For user scripts. Make an ordering mechanism between those logics.
 	SceneManager,
-	Animation, // Placeholder
+	Animation,	// Placeholder
 	Physics,
 	LateUpdate,
 	Transform,

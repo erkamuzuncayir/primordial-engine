@@ -49,7 +49,7 @@ private:
 	void DFSRebuild(uint32_t entityID, uint32_t currentParentPackedIndex, const std::vector<std::vector<uint32_t>> &adj,
 					std::vector<Components::Transform> &sortedData, std::vector<uint32_t> &sortedEntities);
 
-	ECS::ECSManager		 *ref_eM	 = nullptr;
+	ECS::ECSManager			 *ref_eM	 = nullptr;
 	const Core::EngineConfig *ref_config = nullptr;
 
 	bool	 m_isHierarchyDirty	  = true;

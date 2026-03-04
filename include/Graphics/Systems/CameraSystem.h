@@ -25,7 +25,7 @@ public:
 	[[nodiscard]] Math::Mat44	UpdateViewMatrix(const Scene::Components::Transform &transform) const;
 
 private:
-	ECS::ECSManager *ref_eM			= nullptr;
+	ECS::ECSManager	   *ref_eM			= nullptr;
 	Input::InputSystem *ref_inputSystem = nullptr;
 	ECS::EntityID		m_activeCamera	= ECS::INVALID_ENTITY_ID;
 };

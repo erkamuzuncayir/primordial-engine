@@ -39,9 +39,9 @@ public:
 	virtual ERROR_CODE Shutdown()															  = 0;
 	virtual ERROR_CODE OnResize(const RenderConfig &config)									  = 0;
 
-	virtual ERROR_CODE InitializeGUI()	 = 0;
-	virtual void	   NewFrameGUI() = 0;
-	virtual void	   ShutdownGUI() = 0;
+	virtual ERROR_CODE InitializeGUI() = 0;
+	virtual void	   NewFrameGUI()   = 0;
+	virtual void	   ShutdownGUI()   = 0;
 
 	virtual void Submit(const RenderCommand &command)															  = 0;
 	virtual void SubmitParticles(TextureID texture, const std::vector<Graphics::Components::Particle> &particles) = 0;
