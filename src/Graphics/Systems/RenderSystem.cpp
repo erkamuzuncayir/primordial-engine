@@ -148,7 +148,7 @@ void RenderSystem::OnUpdate(float dt) {
 	if (shouldFlush) m_renderer->Flush();
 }
 
-void RenderSystem::OnResize(const RenderConfig &config) {
+void RenderSystem::OnResize(const RenderConfig &config) const {
 	float newAspect = static_cast<float>(config.width) / static_cast<float>(config.height);
 	if (newAspect < 0.001f) newAspect = 1.777f;
 	ref_cameraSystem->OnResize(newAspect);

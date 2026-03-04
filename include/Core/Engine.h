@@ -32,7 +32,7 @@ public:
 	ERROR_CODE Shutdown();
 
 	void RequestToCloseApplication() const { ref_platformSystem->RequestToCloseTheApplication(); }
-	[[nodiscard]] Graphics::Systems::RenderSystem *GetRenderSystem() const { return m_renderSystem; }
+	[[nodiscard]] const Graphics::Systems::RenderSystem& GetRenderSystem() const { return m_renderSystem; }
 
 private:
 	Assets::AssetManager			  *s_assetManager	  = nullptr;
@@ -40,14 +40,14 @@ private:
 	Input::InputSystem				  *ref_inputSystem	  = nullptr;
 	SystemState						   m_state			  = SystemState::Uninitialized;
 	ECS::ECSManager					  *m_ecsManager		  = nullptr;
-	Graphics::Systems::RenderSystem	  *m_renderSystem	  = nullptr;
-	Graphics::Systems::ParticleSystem *m_particleSystem	  = nullptr;
-	Graphics::Systems::CameraSystem	  *m_cameraSystem	  = nullptr;
-	Graphics::Systems::GUISystem	  *m_guiSystem		  = nullptr;
-	Scene::Systems::TransformSystem	  *m_transformSystem  = nullptr;
-	Scene::Systems::SceneManager	  *m_sceneManager	  = nullptr;
-	Scene::SceneLoader				  *m_sceneLoader	  = nullptr;
-	Scene::Systems::DayNightSystem	  *m_dayNightSystem	  = nullptr;
+	Graphics::Systems::RenderSystem	  m_renderSystem;
+	Graphics::Systems::ParticleSystem m_particleSystem;
+	Graphics::Systems::CameraSystem	  m_cameraSystem;
+	Graphics::Systems::GUISystem	  m_guiSystem	;
+	Scene::Systems::TransformSystem	  m_transformSystem;
+	Scene::Systems::SceneManager	  m_sceneManager	;
+	Scene::SceneLoader				  m_sceneLoader	  ;
+	Scene::Systems::DayNightSystem	  m_dayNightSystem;
 
 	std::unordered_map<std::string, ECS::EntityID> m_nameEntityIDMap;
 };
