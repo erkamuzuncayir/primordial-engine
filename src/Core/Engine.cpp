@@ -47,6 +47,10 @@ ERROR_CODE Engine::Initialize(Platform::PlatformSystem *platformSystem, EngineCo
 
 ERROR_CODE Engine::InitializeSystems(EngineConfig &config, GLFWwindow *window) {
 	ERROR_CODE result;
+	// TODO: Remove and move to game logic
+	m_dayNightSystem = new Scene::Systems::DayNightSystem();
+	PE_ENSURE_INIT(result, m_dayNightSystem->Initialize(ECS::ESystemStage::GameLogic, m_entityManager),
+				   "Scene control system can't initialized.");
 	m_transformSystem = new Scene::Systems::TransformSystem();
 	PE_ENSURE_INIT(result,
 				   m_transformSystem->Initialize(ECS::ESystemStage::Transform, m_entityManager, ref_inputSystem,
@@ -69,15 +73,11 @@ ERROR_CODE Engine::InitializeSystems(EngineConfig &config, GLFWwindow *window) {
 		"Render system can't initialized.");
 	m_guiSystem = new Graphics::Systems::GUISystem();
 	PE_ENSURE_INIT(result,
-				   m_guiSystem->Initialize(ECS::ESystemStage::GUI, m_entityManager, m_sceneManager,
-										   m_renderSystem->GetRenderer()),
+				   m_guiSystem->Initialize(ECS::ESystemStage::GUI, m_entityManager, m_renderSystem->GetRenderer()),
 				   "GUI System failed to initialize.");
-	m_dayNightSystem = new Scene::Systems::DayNightSystem();
-	PE_ENSURE_INIT(result, m_dayNightSystem->Initialize(ECS::ESystemStage::GameLogic, m_entityManager),
-				   "Scene control system can't initialized.");
 	m_sceneManager = new Scene::Systems::SceneManager();
 	PE_ENSURE_INIT(result,
-				   m_sceneManager->Initialize(ECS::ESystemStage::SceneControl, this, m_entityManager,
+				   m_sceneManager->Initialize(ECS::ESystemStage::SceneManager, this, m_entityManager,
 													m_sceneLoader, ref_inputSystem, m_transformSystem, m_cameraSystem,
 													m_guiSystem, m_dayNightSystem, config),
 				   "Scene control system can't initialized.");
