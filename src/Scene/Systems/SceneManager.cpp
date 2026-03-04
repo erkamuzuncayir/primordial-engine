@@ -1,4 +1,4 @@
-#include "Scene/Systems/SceneControlSystem.h"
+#include "Scene/Systems/SceneManager.h"
 
 #include "Core/Engine.h"
 #include "Core/EngineConfig.h"
@@ -55,7 +55,7 @@ static constexpr SelectionBindingConfig SELECTION_CONFIGS[] = {
 	 Graphics::Systems::CameraType::CloseUp},
 };
 
-ERROR_CODE SceneControlSystem::Initialize(ECS::ESystemStage stage, Core::Engine *application,
+ERROR_CODE SceneManager::Initialize(ECS::ESystemStage stage, Core::Engine *application,
 										  ECS::ECSManager *entityManager, SceneLoader *sceneLoader,
 										  Input::InputSystem *inputSystem, TransformSystem *transformSystem,
 										  Graphics::Systems::CameraSystem *cameraSystem,
@@ -64,7 +64,7 @@ ERROR_CODE SceneControlSystem::Initialize(ECS::ESystemStage stage, Core::Engine 
 	PE_CHECK_STATE_INIT(m_state, "SceneControl system is already initialized!");
 	m_state = SystemState::Initializing;
 
-	m_typeID			= GetUniqueISystemTypeID<SceneControlSystem>();
+	m_typeID			= GetUniqueISystemTypeID<SceneManager>();
 	ref_application		= application;
 	ref_eM				= entityManager;
 	ref_inputSystem		= inputSystem;
@@ -88,7 +88,7 @@ ERROR_CODE SceneControlSystem::Initialize(ECS::ESystemStage stage, Core::Engine 
 	return result;
 }
 
-ERROR_CODE SceneControlSystem::Shutdown() {
+ERROR_CODE SceneManager::Shutdown() {
 	if (m_state == SystemState::Uninitialized || m_state == SystemState::ShuttingDown) return ERROR_CODE::OK;
 	m_state = SystemState::ShuttingDown;
 
@@ -106,7 +106,7 @@ ERROR_CODE SceneControlSystem::Shutdown() {
 	return result;
 }
 
-void SceneControlSystem::OnUpdate(float dt) {
+void SceneManager::OnUpdate(float dt) {
 	if ((m_controlledEntity != ECS::INVALID_ENTITY_ID) && !m_moveStateStacks.empty()) ProcessObjectMovement(dt);
 
 	if (m_isFireActive) {
@@ -125,10 +125,10 @@ void SceneControlSystem::OnUpdate(float dt) {
 	}
 }
 
-void SceneControlSystem::SelectControlledEntity(const ECS::EntityID id) { m_controlledEntity = id; }
+void SceneManager::SelectControlledEntity(const ECS::EntityID id) { m_controlledEntity = id; }
 
 // TODO: Refactor this to be better solution based on loaded scene not hardcoded.
-void SceneControlSystem::SelectControlledEntity(const Graphics::Systems::CameraType camType) {
+void SceneManager::SelectControlledEntity(const Graphics::Systems::CameraType camType) {
 	ECS::ComponentArray<Graphics::Components::Camera> &camCompArr = ref_eM->GetCompArr<Graphics::Components::Camera>();
 	if (!camCompArr.Has(static_cast<uint8_t>(camType))) return;
 
@@ -141,7 +141,7 @@ void SceneControlSystem::SelectControlledEntity(const Graphics::Systems::CameraT
 	}
 }
 
-void SceneControlSystem::ProcessObjectMovement(float dt) {
+void SceneManager::ProcessObjectMovement(float dt) {
 	Math::Vec3 localInput = Math::Vec3Zero;
 	Math::Vec3 deltaRot	  = Math::Vec3Zero;
 
@@ -180,7 +180,7 @@ void SceneControlSystem::ProcessObjectMovement(float dt) {
 	}
 }
 
-void SceneControlSystem::SetupInputBindings() {
+void SceneManager::SetupInputBindings() {
 	for (const auto &cfg : MOVEMENT_CONFIGS) {
 		ref_inputSystem->BindKey(cfg.actionId, cfg.binding);
 
@@ -271,7 +271,7 @@ void SceneControlSystem::SetupInputBindings() {
 	}
 }
 
-void SceneControlSystem::CleanupInputBindings() {
+void SceneManager::CleanupInputBindings() {
 	for (const auto &ia : m_subscribedInputActionIDs) ref_inputSystem->Unsubscribe(ia);
 	for (const auto &config : MOVEMENT_CONFIGS) ref_inputSystem->UnbindKey(config.binding);
 	for (const auto &config : SELECTION_CONFIGS) ref_inputSystem->UnbindKey(config.binding);

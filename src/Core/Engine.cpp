@@ -39,7 +39,7 @@ ERROR_CODE Engine::Initialize(Platform::PlatformSystem *platformSystem, EngineCo
 	const std::filesystem::path demoScenePath =
 		std::filesystem::path("demo-scenes") / "desert-globe" / "desert-globe.ini";
 	m_sceneLoader->LoadScene(Utilities::IOUtilities::GetAssetPath(demoScenePath.string()));
-	m_sceneControlSystem->SelectControlledEntity(Graphics::Systems::CameraType::Overview);
+	m_sceneManager->SelectControlledEntity(Graphics::Systems::CameraType::Overview);
 
 	m_state = SystemState::Running;
 	return result;
@@ -69,15 +69,15 @@ ERROR_CODE Engine::InitializeSystems(EngineConfig &config, GLFWwindow *window) {
 		"Render system can't initialized.");
 	m_guiSystem = new Graphics::Systems::GUISystem();
 	PE_ENSURE_INIT(result,
-				   m_guiSystem->Initialize(ECS::ESystemStage::GUI, m_entityManager, m_sceneControlSystem,
+				   m_guiSystem->Initialize(ECS::ESystemStage::GUI, m_entityManager, m_sceneManager,
 										   m_renderSystem->GetRenderer()),
 				   "GUI System failed to initialize.");
 	m_dayNightSystem = new Scene::Systems::DayNightSystem();
 	PE_ENSURE_INIT(result, m_dayNightSystem->Initialize(ECS::ESystemStage::GameLogic, m_entityManager),
 				   "Scene control system can't initialized.");
-	m_sceneControlSystem = new Scene::Systems::SceneControlSystem();
+	m_sceneManager = new Scene::Systems::SceneManager();
 	PE_ENSURE_INIT(result,
-				   m_sceneControlSystem->Initialize(ECS::ESystemStage::SceneControl, this, m_entityManager,
+				   m_sceneManager->Initialize(ECS::ESystemStage::SceneControl, this, m_entityManager,
 													m_sceneLoader, ref_inputSystem, m_transformSystem, m_cameraSystem,
 													m_guiSystem, m_dayNightSystem, config),
 				   "Scene control system can't initialized.");
@@ -101,7 +101,7 @@ ERROR_CODE Engine::InitializeComponents(const EngineConfig &config) const {
 void Engine::UpdateApplication(const float dt) {
 	static float totalTime = 0.0f;
 
-	m_sceneControlSystem->OnUpdate(dt);
+	m_sceneManager->OnUpdate(dt);
 	m_dayNightSystem->OnUpdate(dt);
 	m_transformSystem->OnUpdate(dt);
 	m_cameraSystem->OnUpdate(dt);
@@ -130,7 +130,7 @@ ERROR_CODE Engine::Shutdown() {
 	m_state = SystemState::ShuttingDown;
 	Utilities::SafeShutdown(m_dayNightSystem);
 	Utilities::SafeShutdown(m_sceneLoader);
-	Utilities::SafeShutdown(m_sceneControlSystem);
+	Utilities::SafeShutdown(m_sceneManager);
 	Utilities::SafeShutdown(m_renderSystem);
 	Utilities::SafeShutdown(m_particleSystem);
 	Utilities::SafeShutdown(m_guiSystem);

@@ -29,10 +29,10 @@ enum class MovementState : uint8_t {
 	Count
 };
 
-class SceneControlSystem : public ECS::ISystem {
+class SceneManager : public ECS::ISystem {
 public:
-	SceneControlSystem()		   = default;
-	~SceneControlSystem() override = default;
+	SceneManager()		   = default;
+	~SceneManager() override = default;
 	ERROR_CODE Initialize(ECS::ESystemStage stage, Core::Engine *application, ECS::ECSManager *entityManager,
 						  SceneLoader *sceneLoader, Input::InputSystem *inputSystem, TransformSystem *transformSystem,
 						  Graphics::Systems::CameraSystem *cameraSystem, Graphics::Systems::GUISystem *guiSystem,

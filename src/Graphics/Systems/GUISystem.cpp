@@ -12,7 +12,7 @@
 #include "Graphics/RenderTypes.h"
 #include "Scene/Components/DayNightCycle.h"
 #include "Scene/Components/Tag.h"
-#include "Scene/Systems/SceneControlSystem.h"
+#include "Scene/Systems/SceneManager.h"
 #include "Utilities/EnumReflection.h"
 #include "Utilities/Logger.h"
 #include "Utilities/MemoryUtilities.h"
@@ -28,7 +28,7 @@ struct DirectionalLight;
 
 namespace PE::Graphics::Systems {
 ERROR_CODE GUISystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager,
-								 Scene::Systems::SceneControlSystem *sceneControlSystem, IRenderer *renderer) {
+								 Scene::Systems::SceneManager *sceneControlSystem, IRenderer *renderer) {
 	PE_CHECK_STATE_INIT(m_state, "GUI system is already initialized!");
 	m_state = SystemState::Initializing;
 
