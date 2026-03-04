@@ -13,7 +13,7 @@
 #include "Utilities/MemoryUtilities.h"
 
 namespace PE::Graphics::Systems {
-ERROR_CODE RenderSystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManager *entityManager,
+ERROR_CODE RenderSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager,
 									CameraSystem *cameraSystem, GLFWwindow *window, Core::EngineConfig &config) {
 	PE_CHECK_STATE_INIT(m_state, "Render system is already initialized!");
 	m_state = SystemState::Initializing;

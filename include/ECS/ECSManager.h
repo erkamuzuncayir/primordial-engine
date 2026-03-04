@@ -12,14 +12,14 @@
 #include "ISystem.h"
 
 namespace PE::ECS {
-class EntityManager {
+class ECSManager {
 public:
-	EntityManager()									= default;
-	EntityManager(const EntityManager &)			= delete;
-	EntityManager &operator=(const EntityManager &) = delete;
-	EntityManager(EntityManager &&)					= delete;
-	EntityManager &operator=(EntityManager &&)		= delete;
-	~EntityManager()								= default;
+	ECSManager()									= default;
+	ECSManager(const ECSManager &)			= delete;
+	ECSManager &operator=(const ECSManager &) = delete;
+	ECSManager(ECSManager &&)					= delete;
+	ECSManager &operator=(ECSManager &&)		= delete;
+	~ECSManager()								= default;
 
 	// Initialize with maximum number of entities and component types
 	ERROR_CODE Initialize(uint32_t maxEntities, uint32_t maxComponentTypes);
@@ -71,13 +71,13 @@ private:
 
 // Template implementations
 template <typename T>
-ComponentArray<T> &EntityManager::GetCompArr() {
+ComponentArray<T> &ECSManager::GetCompArr() {
 	const uint32_t typeID = ComponentType<T>::ID();
 	return *static_cast<ComponentArray<T> *>(m_componentArrays[typeID].get());
 }
 
 template <typename TIComponent>
-ERROR_CODE EntityManager::RegisterComponent(uint32_t componentCount) {
+ERROR_CODE ECSManager::RegisterComponent(uint32_t componentCount) {
 	const uint32_t typeID = ComponentType<TIComponent>::ID();
 	if (typeID >= ref_maxComponentTypes) {
 		// TODO: Add reallocation for increased size of m_allComponentIndices
@@ -98,7 +98,7 @@ ERROR_CODE EntityManager::RegisterComponent(uint32_t componentCount) {
 }
 
 template <typename TIComponent>
-ERROR_CODE EntityManager::UnregisterComponent() {
+ERROR_CODE ECSManager::UnregisterComponent() {
 	const uint32_t typeID = ComponentType<TIComponent>::ID();
 	if (typeID >= ref_maxComponentTypes) {
 		PE_LOG_FATAL("Invalid component type");
@@ -116,7 +116,7 @@ ERROR_CODE EntityManager::UnregisterComponent() {
 }
 
 template <typename TIComponent>
-ERROR_CODE EntityManager::AddComponent(EntityID entityID, const TIComponent &component) {
+ERROR_CODE ECSManager::AddComponent(EntityID entityID, const TIComponent &component) {
 	if (entityID >= ref_maxEntities) {
 		PE_LOG_FATAL("Wrong entity ID.");
 		return ERROR_CODE::WRONG_ENTITY_ID;
@@ -132,7 +132,7 @@ ERROR_CODE EntityManager::AddComponent(EntityID entityID, const TIComponent &com
 }
 
 template <typename TIComponent>
-ERROR_CODE EntityManager::RemoveComponent(const EntityID entityID) {
+ERROR_CODE ECSManager::RemoveComponent(const EntityID entityID) {
 	if (entityID >= ref_maxEntities) {
 		PE_LOG_FATAL("Wrong entity ID.");
 		return ERROR_CODE::WRONG_ENTITY_ID;
@@ -155,7 +155,7 @@ ERROR_CODE EntityManager::RemoveComponent(const EntityID entityID) {
 }
 
 template <typename TIComponent>
-TIComponent *EntityManager::GetTIComponent(const EntityID entityID) {
+TIComponent *ECSManager::GetTIComponent(const EntityID entityID) {
 	if (entityID >= ref_maxEntities) {
 		PE_LOG_FATAL("Wrong entity ID.");
 		return nullptr;
@@ -186,7 +186,7 @@ TIComponent *EntityManager::GetTIComponent(const EntityID entityID) {
 }
 
 template <typename TIComponent>
-TIComponent *EntityManager::TryGetTIComponent(EntityID entityID) {
+TIComponent *ECSManager::TryGetTIComponent(EntityID entityID) {
 	if (HasComponent<TIComponent>(entityID))
 		return GetTIComponent<TIComponent>(entityID);
 	else {
@@ -196,12 +196,12 @@ TIComponent *EntityManager::TryGetTIComponent(EntityID entityID) {
 }
 
 template <typename... TIComponents>
-std::tuple<TIComponents *...> EntityManager::GetTIComponents(EntityID entityID) {
+std::tuple<TIComponents *...> ECSManager::GetTIComponents(EntityID entityID) {
 	return std::tuple<TIComponents *...>{GetTIComponent<TIComponents>(entityID)...};
 }
 
 template <typename TIComponent>
-bool EntityManager::HasComponent(const EntityID entityID) const {
+bool ECSManager::HasComponent(const EntityID entityID) const {
 	if (entityID >= ref_maxEntities) {
 		PE_LOG_WARN("Wrong entity ID.");
 		return false;

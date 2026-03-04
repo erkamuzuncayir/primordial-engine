@@ -1,10 +1,10 @@
-#include "ECS/EntityManager.h"
+#include "ECS/ECSManager.h"
 
 #include "Scene/EntityFactory.h"
 #include "Utilities/MemoryUtilities.h"
 
 namespace PE::ECS {
-ERROR_CODE EntityManager::Initialize(uint32_t maxEntities, uint32_t maxComponentTypes) {
+ERROR_CODE ECSManager::Initialize(uint32_t maxEntities, uint32_t maxComponentTypes) {
 	PE_CHECK_STATE_INIT(m_state, "Entity manager is already initialized");
 	m_state = SystemState::Initializing;
 
@@ -25,14 +25,14 @@ ERROR_CODE EntityManager::Initialize(uint32_t maxEntities, uint32_t maxComponent
 	return result;
 }
 
-void EntityManager::Update(const float dt) {
+void ECSManager::Update(const float dt) {
 	// TODO: Currently not used, but will use.
 	//     for (auto const &stageVec : m_systems)
 	//         for (auto &sys : stageVec)
 	//             sys->OnUpdate(dt);
 }
 
-ERROR_CODE EntityManager::Shutdown() {
+ERROR_CODE ECSManager::Shutdown() {
 	if (m_state == SystemState::Uninitialized || m_state == SystemState::ShuttingDown) return ERROR_CODE::OK;
 	m_state = SystemState::ShuttingDown;
 
@@ -46,7 +46,7 @@ ERROR_CODE EntityManager::Shutdown() {
 	return ERROR_CODE::OK;
 }
 
-EntityID EntityManager::CreateEntity() {
+EntityID ECSManager::CreateEntity() {
 	if (m_freeEntities.empty()) {
 		PE_LOG_ERROR("There isn't any free entity.");
 		return UINT32_MAX;
@@ -61,7 +61,7 @@ EntityID EntityManager::CreateEntity() {
 	return id;
 }
 
-ERROR_CODE EntityManager::DestroyEntity(EntityID id) {
+ERROR_CODE ECSManager::DestroyEntity(EntityID id) {
 	if (id >= ref_maxEntities) {
 		PE_LOG_FATAL("Entity ID isn't correct.");
 		return ERROR_CODE::WRONG_ENTITY_ID;
@@ -79,8 +79,8 @@ ERROR_CODE EntityManager::DestroyEntity(EntityID id) {
 	return ERROR_CODE::OK;
 }
 
-void EntityManager::ClearAllEntities() {
-	PE_LOG_INFO("EntityManager: Clearing all entities and components...");
+void ECSManager::ClearAllEntities() {
+	PE_LOG_INFO("ECSManager: Clearing all entities and components...");
 
 	for (uint32_t typeID = 0; typeID < ref_maxComponentTypes; ++typeID) {
 		if (m_componentArrays[typeID]) {
@@ -96,10 +96,10 @@ void EntityManager::ClearAllEntities() {
 		m_freeEntities.push(ref_maxEntities - 1 - i);
 	}
 
-	PE_LOG_INFO("EntityManager: All entities cleared.");
+	PE_LOG_INFO("ECSManager: All entities cleared.");
 }
 
-ERROR_CODE EntityManager::RegisterSystem(ISystem *system) {
+ERROR_CODE ECSManager::RegisterSystem(ISystem *system) {
 	ESystemStage stage = system->GetStage();
 
 	if (stage >= ESystemStage::Count) {
@@ -118,7 +118,7 @@ ERROR_CODE EntityManager::RegisterSystem(ISystem *system) {
 	return ERROR_CODE::OK;
 }
 
-ERROR_CODE EntityManager::UnregisterSystem(const ISystem *system) {
+ERROR_CODE ECSManager::UnregisterSystem(const ISystem *system) {
 	ESystemStage stage = system->GetStage();
 
 	if (stage >= ESystemStage::Count) {

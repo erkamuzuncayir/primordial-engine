@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Assets/AssetManager.h"
-#include "ECS/EntityManager.h"
+#include "ECS/ECSManager.h"
 #include "Graphics/IRenderer.h"
 #include "Graphics/RenderConfig.h"
 
@@ -50,7 +50,7 @@ class SceneLoader {
 public:
 	SceneLoader()  = default;
 	~SceneLoader() = default;
-	ERROR_CODE Initialize(ECS::EntityManager *em, const Graphics::RenderConfig &config, Graphics::IRenderer *renderer);
+	ERROR_CODE Initialize(ECS::ECSManager *em, const Graphics::RenderConfig &config, Graphics::IRenderer *renderer);
 	void	   Shutdown();
 	void	   LoadScene(const std::string &filePath);
 	void	   ReloadScene();
@@ -107,7 +107,7 @@ private:
 	void FinalizeHierarchy();
 	void FinalizeDayNightCycle();
 
-	ECS::EntityManager			 *ref_eM	   = nullptr;
+	ECS::ECSManager			 *ref_eM	   = nullptr;
 	const Graphics::RenderConfig *ref_config   = nullptr;
 	Graphics::IRenderer			 *ref_renderer = nullptr;
 

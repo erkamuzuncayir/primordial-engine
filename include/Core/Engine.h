@@ -39,7 +39,7 @@ private:
 	Platform::PlatformSystem		   *ref_platformSystem	 = nullptr;
 	Input::InputSystem				   *ref_inputSystem		 = nullptr;
 	SystemState							m_state				 = SystemState::Uninitialized;
-	ECS::EntityManager				   *m_entityManager		 = nullptr;
+	ECS::ECSManager				   *m_entityManager		 = nullptr;
 	Graphics::Systems::RenderSystem	   *m_renderSystem		 = nullptr;
 	Graphics::Systems::ParticleSystem  *m_particleSystem	 = nullptr;
 	Graphics::Systems::CameraSystem	   *m_cameraSystem		 = nullptr;

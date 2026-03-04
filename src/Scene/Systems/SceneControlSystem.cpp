@@ -56,7 +56,7 @@ static constexpr SelectionBindingConfig SELECTION_CONFIGS[] = {
 };
 
 ERROR_CODE SceneControlSystem::Initialize(ECS::ESystemStage stage, Core::Engine *application,
-										  ECS::EntityManager *entityManager, SceneLoader *sceneLoader,
+										  ECS::ECSManager *entityManager, SceneLoader *sceneLoader,
 										  Input::InputSystem *inputSystem, TransformSystem *transformSystem,
 										  Graphics::Systems::CameraSystem *cameraSystem,
 										  Graphics::Systems::GUISystem *guiSystem, DayNightSystem *dayNightSystem,

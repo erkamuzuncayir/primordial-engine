@@ -33,7 +33,7 @@ class SceneControlSystem : public ECS::ISystem {
 public:
 	SceneControlSystem()		   = default;
 	~SceneControlSystem() override = default;
-	ERROR_CODE Initialize(ECS::ESystemStage stage, Core::Engine *application, ECS::EntityManager *entityManager,
+	ERROR_CODE Initialize(ECS::ESystemStage stage, Core::Engine *application, ECS::ECSManager *entityManager,
 						  SceneLoader *sceneLoader, Input::InputSystem *inputSystem, TransformSystem *transformSystem,
 						  Graphics::Systems::CameraSystem *cameraSystem, Graphics::Systems::GUISystem *guiSystem,
 						  DayNightSystem *dayNightSystem, const Core::EngineConfig &config);
@@ -49,7 +49,7 @@ private:
 	void CleanupInputBindings();
 
 	Core::Engine					*ref_application	 = nullptr;
-	ECS::EntityManager				*ref_eM				 = nullptr;
+	ECS::ECSManager				*ref_eM				 = nullptr;
 	Input::InputSystem				*ref_inputSystem	 = nullptr;
 	SceneLoader						*ref_sceneLoader	 = nullptr;
 	Graphics::Systems::CameraSystem *ref_cameraSystem	 = nullptr;
