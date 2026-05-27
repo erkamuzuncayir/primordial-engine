@@ -196,13 +196,13 @@ ERROR_CODE VulkanRenderer::InitializeGUI() {
 	init_info.PipelineInfoMain.Subpass	   = 0;
 	init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 	init_info.CheckVkResultFn			   = [](const VkResult err) {
-		 if (err == 0) return;
+		if (err == 0) return;
 
-		 PE_LOG_FATAL("ImGui Vulkan Error: VkResult = " + std::to_string(err));
+		PE_LOG_FATAL("ImGui Vulkan Error: VkResult = " + std::to_string(err));
 
-		 if (err < 0) {
-			 abort();
-		 }
+		if (err < 0) {
+			abort();
+		}
 	};
 
 	VkPipelineRenderingCreateInfo imguiPipelineInfo{VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
@@ -285,14 +285,14 @@ void VulkanRenderer::Flush() {
 	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 	VkSemaphore			 signalSem[]  = {m_renderFinishedSemaphores[imageIndex]};
 	VkSubmitInfo		 submitInfo{
-				.sType				  = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-				.waitSemaphoreCount	  = 1,
-				.pWaitSemaphores	  = waitSem,
-				.pWaitDstStageMask	  = waitStages,
-				.commandBufferCount	  = 1,
-				.pCommandBuffers	  = &cmd,
-				.signalSemaphoreCount = 1,
-				.pSignalSemaphores	  = signalSem,
+		.sType				  = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.waitSemaphoreCount	  = 1,
+		.pWaitSemaphores	  = waitSem,
+		.pWaitDstStageMask	  = waitStages,
+		.commandBufferCount	  = 1,
+		.pCommandBuffers	  = &cmd,
+		.signalSemaphoreCount = 1,
+		.pSignalSemaphores	  = signalSem,
 	};
 	if (vkQueueSubmit(ref_device->GetGraphicsQueue(), 1, &submitInfo, m_inFlightFences[m_currentFrame]) != VK_SUCCESS) {
 		PE_LOG_FATAL("Vulkan failed submitting queue!");
@@ -542,14 +542,14 @@ ERROR_CODE VulkanRenderer::RecordCommandBuffer(uint32_t imageIndex, VkCommandBuf
 
 		VkExtent2D vkExtent2D = m_swapChain->GetExtent();
 		VkViewport viewport	  = {
-			  .x	  = 0.0f,
-			  .y	  = static_cast<float>(vkExtent2D.height),
-			  .width  = static_cast<float>(vkExtent2D.width),
-			  .height = -static_cast<float>(vkExtent2D.height),
+			.x		= 0.0f,
+			.y		= static_cast<float>(vkExtent2D.height),
+			.width	= static_cast<float>(vkExtent2D.width),
+			.height = -static_cast<float>(vkExtent2D.height),
 
-			  .minDepth = 0.0f,
-			  .maxDepth = 1.0f,
-		  };
+			.minDepth = 0.0f,
+			.maxDepth = 1.0f,
+		};
 		vkCmdSetViewport(cmd, 0, 1, &viewport);
 		VkRect2D scissor = {.offset = {.x = 0, .y = 0}, .extent = vkExtent2D};
 		vkCmdSetScissor(cmd, 0, 1, &scissor);
@@ -1471,11 +1471,11 @@ ERROR_CODE VulkanRenderer::CreateUniformBuffers(const uint32_t maxModelCount) {
 		// 1. Create Global Buffer (Set 0)
 		m_perPassBuffers[i] = new VulkanBuffer();
 		ERROR_CODE result	= m_perPassBuffers[i]->Initialize(
-			  ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(), globalSize,
-			  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			  VK_SHARING_MODE_EXCLUSIVE,												  // Standard mode
-			  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT  // Coherent = no need to Flush()
-		  );
+			ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(), globalSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_SHARING_MODE_EXCLUSIVE,													// Standard mode
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT	// Coherent = no need to Flush()
+		);
 		if (result < ERROR_CODE::WARN_START) {
 			Utilities::SafeShutdown(m_perPassBuffers[i]);
 			PE_LOG_FATAL("Vulkan failed to create per pass buffer!");
@@ -1487,9 +1487,9 @@ ERROR_CODE VulkanRenderer::CreateUniformBuffers(const uint32_t maxModelCount) {
 		// 2. Create Object Buffer (Set 1)
 		m_perObjectBuffers[i] = new VulkanBuffer();
 		result				  = m_perObjectBuffers[i]->Initialize(
-			   ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(), objectBufferSize,
-			   VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE,
-			   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+			ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(), objectBufferSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		if (result < ERROR_CODE::WARN_START) {
 			Utilities::SafeShutdown(m_perObjectBuffers[i]);
 			PE_LOG_FATAL("Vulkan failed to create per object buffer!");

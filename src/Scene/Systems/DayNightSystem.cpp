@@ -74,8 +74,8 @@ void DayNightSystem::UpdateSunMoon(Components::DayNightCycle &cycle, float dt) {
 	const float FADE_RANGE = 0.15f;
 
 	if (cycle.sunEntity != ECS::INVALID_ENTITY_ID) {
-		auto *sunTrans = ref_eM->TryGetTIComponent<Components::Transform>(cycle.sunEntity);
-		auto *sunLight = ref_eM->TryGetTIComponent<Graphics::Components::DirectionalLight>(cycle.sunEntity);
+		auto *sunTrans = ref_eM->TryGetTComponent<Components::Transform>(cycle.sunEntity);
+		auto *sunLight = ref_eM->TryGetTComponent<Graphics::Components::DirectionalLight>(cycle.sunEntity);
 
 		if (sunTrans) {
 			sunTrans->position = sunDir * 105.0f;
@@ -93,8 +93,8 @@ void DayNightSystem::UpdateSunMoon(Components::DayNightCycle &cycle, float dt) {
 	}
 
 	if (cycle.moonEntity != ECS::INVALID_ENTITY_ID) {
-		auto *moonTrans = ref_eM->TryGetTIComponent<Components::Transform>(cycle.moonEntity);
-		auto *moonLight = ref_eM->TryGetTIComponent<Graphics::Components::DirectionalLight>(cycle.moonEntity);
+		auto *moonTrans = ref_eM->TryGetTComponent<Components::Transform>(cycle.moonEntity);
+		auto *moonLight = ref_eM->TryGetTComponent<Graphics::Components::DirectionalLight>(cycle.moonEntity);
 
 		if (moonTrans) {
 			moonTrans->position = moonDir * 105.0f;
@@ -120,7 +120,7 @@ void DayNightSystem::UpdateSunMoon(Components::DayNightCycle &cycle, float dt) {
 void DayNightSystem::UpdateWeather(Components::DayNightCycle &cycle, float dt) {
 	if (cycle.weatherEntity == ECS::INVALID_ENTITY_ID) return;
 
-	auto *emitter = ref_eM->TryGetTIComponent<Graphics::Components::ParticleEmitter>(cycle.weatherEntity);
+	auto *emitter = ref_eM->TryGetTComponent<Graphics::Components::ParticleEmitter>(cycle.weatherEntity);
 	if (!emitter) return;
 
 	switch (cycle.currentSeason) {
@@ -166,7 +166,7 @@ void DayNightSystem::UpdateEnvironmentalEffects(Components::DayNightCycle &cycle
 		if (name.find("Tree") != std::string::npos || name.find("Saguaro") != std::string::npos ||
 			name.find("Joshua") != std::string::npos || name.find("Candelabra") != std::string::npos) {
 			ECS::EntityID treeID	= tagArr.Index()[j];
-			auto		 *transform = ref_eM->TryGetTIComponent<Components::Transform>(treeID);
+			auto		 *transform = ref_eM->TryGetTComponent<Components::Transform>(treeID);
 
 			if (transform) {
 				float currentScale = transform->scale.x;
@@ -188,14 +188,14 @@ void DayNightSystem::UpdateEnvironmentalEffects(Components::DayNightCycle &cycle
 	}
 
 	if (cycle.dustEntity != ECS::INVALID_ENTITY_ID) {
-		if (auto *dust = ref_eM->TryGetTIComponent<ParticleEmitter>(cycle.dustEntity)) {
+		if (auto *dust = ref_eM->TryGetTComponent<ParticleEmitter>(cycle.dustEntity)) {
 			bool active		= (!isDay && !isPrecipitating);
 			dust->spawnRate = active ? 20.0f : 0.0f;
 		}
 	}
 
 	if (cycle.bonfireEntity != ECS::INVALID_ENTITY_ID) {
-		if (auto *fire = ref_eM->TryGetTIComponent<ParticleEmitter>(cycle.bonfireEntity)) {
+		if (auto *fire = ref_eM->TryGetTComponent<ParticleEmitter>(cycle.bonfireEntity)) {
 			bool active		= (isDay && !isPrecipitating);
 			fire->spawnRate = active ? 50.0f : 0.0f;
 		}

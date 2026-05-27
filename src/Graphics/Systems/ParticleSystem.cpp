@@ -41,7 +41,7 @@ void ParticleSystem::OnUpdate(float dt) {
 
 		while (emitter.spawnAccumulator > rate) {
 			if (emitter.particles.size() < emitter.maxParticles) {
-				const auto *transform = ref_eM->TryGetTIComponent<Scene::Components::Transform>(entityID);
+				const auto *transform = ref_eM->TryGetTComponent<Scene::Components::Transform>(entityID);
 				Math::Vec3	origin	  = transform ? transform->position : Math::Vec3(0.0f);
 
 				Graphics::Components::Particle p;

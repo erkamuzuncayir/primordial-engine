@@ -33,22 +33,22 @@ public:
 	void	   ClearAllEntities();
 
 	// Component registration + access
-	template <typename TIComponent>
+	template <typename TComponent>
 	ERROR_CODE RegisterComponent(uint32_t componentCount = 0);
-	template <typename TIComponent>
+	template <typename TComponent>
 	ERROR_CODE UnregisterComponent();
-	template <typename TIComponent>
-	ERROR_CODE AddComponent(const EntityID entityID, const TIComponent &component);
-	template <typename TIComponent>
-	ERROR_CODE RemoveComponent(const EntityID entityID);
-	template <typename TIComponent>
-	[[nodiscard]] bool HasComponent(const EntityID entityID) const;
-	template <typename TIComponent>
-	TIComponent *GetTIComponent(const EntityID entityID);
-	template <class TIComponent>
-	TIComponent *TryGetTIComponent(EntityID entityID);
-	template <typename... TIComponents>
-	std::tuple<TIComponents *...> GetTIComponents(const EntityID entityID);
+	template <typename TComponent>
+	ERROR_CODE AddComponent(EntityID entityID, const TComponent &component);
+	template <typename TComponent>
+	ERROR_CODE RemoveComponent(EntityID entityID);
+	template <typename TComponent>
+	[[nodiscard]] bool HasComponent(EntityID entityID) const;
+	template <typename TComponent>
+	TComponent *GetTComponent(EntityID entityID);
+	template <class TComponent>
+	TComponent *TryGetTComponent(EntityID entityID);
+	template <typename... TComponents>
+	std::tuple<TComponents *...> GetTComponents(EntityID entityID);
 
 	// System registration + update
 	ERROR_CODE RegisterSystem(ISystem *system);
@@ -76,9 +76,9 @@ ComponentArray<T> &ECSManager::GetCompArr() {
 	return *static_cast<ComponentArray<T> *>(m_componentArrays[typeID].get());
 }
 
-template <typename TIComponent>
+template <typename TComponent>
 ERROR_CODE ECSManager::RegisterComponent(uint32_t componentCount) {
-	const uint32_t typeID = ComponentType<TIComponent>::ID();
+	const uint32_t typeID = ComponentType<TComponent>::ID();
 	if (typeID >= ref_config->maxComponentTypeCount) {
 		// TODO: Add reallocation for increased size of m_allComponentIndices
 		PE_LOG_ERROR("Too many component types. Consider increasing ref_config->maxComponentTypeCount.");
@@ -90,16 +90,16 @@ ERROR_CODE ECSManager::RegisterComponent(uint32_t componentCount) {
 		return ERROR_CODE::COMPONENT_ALREADY_REGISTERED;
 	}
 
-	auto array = std::make_unique<ComponentArray<TIComponent>>();
+	auto array = std::make_unique<ComponentArray<TComponent>>();
 	array->Initialize(componentCount == 0 ? ref_config->maxEntityCount : componentCount);
 	m_componentArrays[typeID] = std::move(array);
 
 	return ERROR_CODE::OK;
 }
 
-template <typename TIComponent>
+template <typename TComponent>
 ERROR_CODE ECSManager::UnregisterComponent() {
-	const uint32_t typeID = ComponentType<TIComponent>::ID();
+	const uint32_t typeID = ComponentType<TComponent>::ID();
 	if (typeID >= ref_config->maxComponentTypeCount) {
 		PE_LOG_FATAL("Invalid component type");
 		return ERROR_CODE::INVALID_COMPONENT_TYPE;
@@ -115,15 +115,15 @@ ERROR_CODE ECSManager::UnregisterComponent() {
 	return ERROR_CODE::OK;
 }
 
-template <typename TIComponent>
-ERROR_CODE ECSManager::AddComponent(EntityID entityID, const TIComponent &component) {
+template <typename TComponent>
+ERROR_CODE ECSManager::AddComponent(EntityID entityID, const TComponent &component) {
 	if (entityID >= ref_config->maxEntityCount) {
 		PE_LOG_FATAL("Wrong entity ID.");
 		return ERROR_CODE::WRONG_ENTITY_ID;
 	}
 
-	const uint32_t typeID = ComponentType<TIComponent>::ID();
-	auto		  &array  = static_cast<ComponentArray<TIComponent> &>(*m_componentArrays[typeID]);
+	const uint32_t typeID = ComponentType<TComponent>::ID();
+	auto		  &array  = static_cast<ComponentArray<TComponent> &>(*m_componentArrays[typeID]);
 	const uint32_t idx	  = array.Add(entityID, &component);
 
 	m_allComponentIndices[typeID * ref_config->maxEntityCount + entityID] = idx;
@@ -131,14 +131,14 @@ ERROR_CODE ECSManager::AddComponent(EntityID entityID, const TIComponent &compon
 	return ERROR_CODE::OK;
 }
 
-template <typename TIComponent>
+template <typename TComponent>
 ERROR_CODE ECSManager::RemoveComponent(const EntityID entityID) {
 	if (entityID >= ref_config->maxEntityCount) {
 		PE_LOG_FATAL("Wrong entity ID.");
 		return ERROR_CODE::WRONG_ENTITY_ID;
 	}
 
-	const uint32_t typeID = ComponentType<TIComponent>::ID();
+	const uint32_t typeID = ComponentType<TComponent>::ID();
 	const int32_t  idx	  = m_allComponentIndices[typeID * ref_config->maxEntityCount + entityID];
 
 	if (idx == UINT32_MAX) {
@@ -146,7 +146,7 @@ ERROR_CODE ECSManager::RemoveComponent(const EntityID entityID) {
 		return ERROR_CODE::COMPONENT_IS_IN_DEFAULT_STATE;
 	}
 
-	const auto [movedSlot, newPackedIdx] = m_componentArrays[typeID]->Remove(idx);
+	m_componentArrays[typeID]->Remove(idx);
 
 	// Clear the removed entity's mapping
 	m_allComponentIndices[typeID * ref_config->maxEntityCount + entityID] = UINT32_MAX;
@@ -154,14 +154,14 @@ ERROR_CODE ECSManager::RemoveComponent(const EntityID entityID) {
 	return ERROR_CODE::OK;
 }
 
-template <typename TIComponent>
-TIComponent *ECSManager::GetTIComponent(const EntityID entityID) {
+template <typename TComponent>
+TComponent *ECSManager::GetTComponent(const EntityID entityID) {
 	if (entityID >= ref_config->maxEntityCount) {
 		PE_LOG_FATAL("Wrong entity ID.");
 		return nullptr;
 	}
 
-	const uint32_t typeID = ComponentType<TIComponent>::ID();
+	const uint32_t typeID = ComponentType<TComponent>::ID();
 	const uint32_t idx	  = m_allComponentIndices[typeID * ref_config->maxEntityCount + entityID];
 
 	if (idx == UINT32_MAX) {
@@ -181,33 +181,33 @@ TIComponent *ECSManager::GetTIComponent(const EntityID entityID) {
 		return nullptr;
 	}
 
-	auto componentArray = static_cast<ComponentArray<TIComponent> *>(arrBase);
+	auto componentArray = static_cast<ComponentArray<TComponent> *>(arrBase);
 	return &(componentArray->Get(idx));
 }
 
-template <typename TIComponent>
-TIComponent *ECSManager::TryGetTIComponent(EntityID entityID) {
-	if (HasComponent<TIComponent>(entityID))
-		return GetTIComponent<TIComponent>(entityID);
+template <typename TComponent>
+TComponent *ECSManager::TryGetTComponent(EntityID entityID) {
+	if (HasComponent<TComponent>(entityID))
+		return GetTComponent<TComponent>(entityID);
 	else {
 		PE_LOG_TRACE("Entity does not have the component.");
 		return nullptr;
 	}
 }
 
-template <typename... TIComponents>
-std::tuple<TIComponents *...> ECSManager::GetTIComponents(EntityID entityID) {
-	return std::tuple<TIComponents *...>{GetTIComponent<TIComponents>(entityID)...};
+template <typename... TComponents>
+std::tuple<TComponents *...> ECSManager::GetTComponents(EntityID entityID) {
+	return std::tuple<TComponents *...>{GetTComponent<TComponents>(entityID)...};
 }
 
-template <typename TIComponent>
+template <typename TComponent>
 bool ECSManager::HasComponent(const EntityID entityID) const {
 	if (entityID >= ref_config->maxEntityCount) {
 		PE_LOG_WARN("Wrong entity ID.");
 		return false;
 	}
 
-	const uint32_t typeID = ComponentType<TIComponent>::ID();
+	const uint32_t typeID = ComponentType<TComponent>::ID();
 	return m_allComponentIndices[typeID * ref_config->maxEntityCount + entityID] != UINT32_MAX;
 }
 }  // namespace PE::ECS

@@ -98,7 +98,7 @@ void PlatformSystem::CalculateFrameStats() const {
 }
 
 void PlatformSystem::OnWindowResize(const int width, const int height) {
-	const Graphics::Systems::RenderSystem& renderSystem = m_application->GetRenderSystem();
+	const Graphics::Systems::RenderSystem &renderSystem = m_application->GetRenderSystem();
 	if (m_application && renderSystem.GetRenderer()) {
 		if (width == 0 || height == 0) {
 			m_appPaused = true;

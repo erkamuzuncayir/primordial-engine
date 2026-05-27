@@ -107,7 +107,7 @@ void SceneManager::OnUpdate(float dt) {
 		m_fireEffectEndTime -= dt;
 
 		if (m_fireEffectEndTime <= 0.0f) {
-			auto *emitter = ref_eM->GetTIComponent<Graphics::Components::ParticleEmitter>(m_burningTreeID);
+			auto *emitter = ref_eM->GetTComponent<Graphics::Components::ParticleEmitter>(m_burningTreeID);
 			if (emitter) {
 				emitter->spawnRate = 0.0f;
 			}
@@ -243,7 +243,7 @@ void SceneManager::SetupInputBindings() {
 						if (compArr.Data()[i].name == burningTreeName) {
 							m_burningTreeID = compArr.Index()[i];
 							auto *emitter =
-								ref_eM->GetTIComponent<Graphics::Components::ParticleEmitter>(m_burningTreeID);
+								ref_eM->GetTComponent<Graphics::Components::ParticleEmitter>(m_burningTreeID);
 							if (emitter) {
 								emitter->spawnRate = 500.0f;
 

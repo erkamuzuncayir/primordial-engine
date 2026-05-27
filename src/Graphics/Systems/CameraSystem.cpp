@@ -42,7 +42,7 @@ void CameraSystem::OnUpdate(float dt) {
 			cam.isDirty			 = false;
 		}
 
-		if (const auto *tfComp = ref_eM->TryGetTIComponent<Scene::Components::Transform>(entityID)) {
+		if (const auto *tfComp = ref_eM->TryGetTComponent<Scene::Components::Transform>(entityID)) {
 			if (tfComp->state == Scene::Components::Transform::TransformState::Updated) {
 				cam.viewMatrix = UpdateViewMatrix(*tfComp);
 			}
@@ -53,7 +53,7 @@ void CameraSystem::OnUpdate(float dt) {
 void CameraSystem::SelectActiveCamera(const ECS::EntityID activeCamID) { m_activeCamera = activeCamID; }
 
 void CameraSystem::MarkDirty(const ECS::EntityID entityID) const {
-	ref_eM->GetTIComponent<Components::Camera>(entityID)->isDirty = true;
+	ref_eM->GetTComponent<Components::Camera>(entityID)->isDirty = true;
 }
 
 void CameraSystem::OnResize(const float aspectRatio) const {
