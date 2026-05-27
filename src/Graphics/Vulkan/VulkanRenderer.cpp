@@ -47,6 +47,9 @@ ERROR_CODE VulkanRenderer::Initialize(GLFWwindow *windowHandle, const Core::Engi
 	PE_ENSURE_INIT_SILENT(result, CreateParticleResources());
 	PE_CHECK(result, CreateStandardPipelineLayout());
 
+	PE_CHECK(result, InitializeGUI());
+	NewFrameGUI();
+
 	PE_LOG_INFO("Vulkan Renderer Initialized.");
 	m_state = SystemState::Running;
 	return result;
@@ -143,7 +146,7 @@ ERROR_CODE VulkanRenderer::OnResize(const RenderConfig &config) {
 	return ERROR_CODE::OK;
 }
 
-ERROR_CODE VulkanRenderer::InitGUI() {
+ERROR_CODE VulkanRenderer::InitializeGUI() {
 	VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
 										 {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
 										 {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
@@ -304,6 +307,7 @@ void VulkanRenderer::Flush() {
 	}
 	m_renderQueue.clear();
 	m_currentFrame = (m_currentFrame + 1) % ref_renderConfig->maxFramesInFlight;
+	NewFrameGUI();
 }
 
 void VulkanRenderer::FlushParticles(VkCommandBuffer cmd) {

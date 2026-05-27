@@ -98,7 +98,8 @@ void PlatformSystem::CalculateFrameStats() const {
 }
 
 void PlatformSystem::OnWindowResize(const int width, const int height) {
-	if (m_application && m_application->GetRenderSystem()->GetRenderer()) {
+	const Graphics::Systems::RenderSystem& renderSystem = m_application->GetRenderSystem();
+	if (m_application && renderSystem.GetRenderer()) {
 		if (width == 0 || height == 0) {
 			m_appPaused = true;
 			m_minimized = true;
@@ -109,7 +110,7 @@ void PlatformSystem::OnWindowResize(const int width, const int height) {
 			m_maximized						= glfwGetWindowAttrib(m_mainWindow, GLFW_MAXIMIZED) == GLFW_TRUE;
 			ref_config->renderConfig.width	= width;
 			ref_config->renderConfig.height = height;
-			m_application->GetRenderSystem()->OnResize(ref_config->renderConfig);
+			renderSystem.OnResize(ref_config->renderConfig);
 		}
 	}
 }

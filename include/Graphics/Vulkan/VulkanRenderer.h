@@ -33,7 +33,7 @@ public:
 	ERROR_CODE Shutdown() override;
 	ERROR_CODE OnResize(const RenderConfig &config) override;
 
-	ERROR_CODE InitGUI() override;
+	ERROR_CODE InitializeGUI() override;
 	void	   NewFrameGUI() override;
 	void	   ShutdownGUI() override;
 

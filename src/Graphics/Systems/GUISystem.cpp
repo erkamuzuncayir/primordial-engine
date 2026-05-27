@@ -5,14 +5,14 @@
 #include <string.h>
 
 #include "Assets/AssetManager.h"
-#include "ECS/EntityManager.h"
+#include "ECS/ECSManager.h"
 #include "Graphics/Components/Camera.h"
 #include "Graphics/Components/DirectionalLight.h"
 #include "Graphics/Components/MeshRenderer.h"
 #include "Graphics/RenderTypes.h"
 #include "Scene/Components/DayNightCycle.h"
 #include "Scene/Components/Tag.h"
-#include "Scene/Systems/SceneControlSystem.h"
+#include "Scene/Systems/SceneManager.h"
 #include "Utilities/EnumReflection.h"
 #include "Utilities/Logger.h"
 #include "Utilities/MemoryUtilities.h"
@@ -27,8 +27,7 @@ struct DirectionalLight;
 }
 
 namespace PE::Graphics::Systems {
-ERROR_CODE GUISystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManager *entityManager,
-								 Scene::Systems::SceneControlSystem *sceneControlSystem, IRenderer *renderer) {
+ERROR_CODE GUISystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager, IRenderer *renderer) {
 	PE_CHECK_STATE_INIT(m_state, "GUI system is already initialized!");
 	m_state = SystemState::Initializing;
 
@@ -38,9 +37,6 @@ ERROR_CODE GUISystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManag
 	ref_renderer = renderer;
 
 	m_fpsTimer = new Utilities::Timer();
-	ERROR_CODE result;
-
-	PE_CHECK(result, ref_renderer->InitGUI());
 
 	PE_LOG_INFO("GUI System Initialized.");
 	m_state = SystemState::Running;
@@ -60,7 +56,7 @@ ERROR_CODE GUISystem::Shutdown() {
 void GUISystem::OnUpdate(float dt) {
 	if (m_state != SystemState::Running) return;
 
-	ref_renderer->NewFrameGUI();
+	// ref_renderer->NewFrameGUI();
 
 	if (m_shouldRender) {
 		DrawPerformanceStats(dt);
