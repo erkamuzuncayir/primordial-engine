@@ -21,7 +21,7 @@ ERROR_CODE Engine::Initialize(Platform::PlatformSystem *platformSystem, EngineCo
 	ref_inputSystem	   = inputSystem;
 
 	ERROR_CODE result;
-	m_ecsManager  = new ECS::ECSManager();
+	m_ecsManager = new ECS::ECSManager();
 
 	// Initialize Internal
 	PE_ENSURE_INIT_SILENT(result, m_ecsManager->Initialize(config));
@@ -47,11 +47,11 @@ ERROR_CODE Engine::Initialize(Platform::PlatformSystem *platformSystem, EngineCo
 ERROR_CODE Engine::InitializeSystems(EngineConfig &config, GLFWwindow *window) {
 	ERROR_CODE result;
 	// TODO: Remove and move to game logic
-	PE_ENSURE_INIT(result, m_dayNightSystem.Initialize(ECS::ESystemStage::GameLogic, m_ecsManager),
+	PE_ENSURE_INIT(result, m_dayNightSystem.Initialize(ECS::ESystemStage::Logic, m_ecsManager),
 				   "Scene control system can't initialized.");
 	PE_ENSURE_INIT(result,
 				   m_transformSystem.Initialize(ECS::ESystemStage::Transform, m_ecsManager, ref_inputSystem,
-					   &m_cameraSystem, config),
+												&m_cameraSystem, config),
 				   "Transform system can't initialized.");
 	PE_ENSURE_INIT(
 		result,
@@ -60,15 +60,15 @@ ERROR_CODE Engine::InitializeSystems(EngineConfig &config, GLFWwindow *window) {
 	PE_ENSURE_INIT(result,
 				   m_renderSystem.Initialize(ECS::ESystemStage::Render, m_ecsManager, &m_cameraSystem, window, config),
 				   "Render system can't initialized.");
-	PE_ENSURE_INIT(
-		result, m_particleSystem.Initialize(ECS::ESystemStage::Particle, m_ecsManager, m_renderSystem.GetRenderer()),
-		"Render system can't initialized.");
+	PE_ENSURE_INIT(result,
+				   m_particleSystem.Initialize(ECS::ESystemStage::Particle, m_ecsManager, m_renderSystem.GetRenderer()),
+				   "Render system can't initialized.");
 	PE_ENSURE_INIT(result, m_guiSystem.Initialize(ECS::ESystemStage::GUI, m_ecsManager, m_renderSystem.GetRenderer()),
 				   "GUI System failed to initialize.");
 	PE_ENSURE_INIT(
 		result,
 		m_sceneManager.Initialize(ECS::ESystemStage::SceneManager, this, m_ecsManager, &m_sceneLoader, ref_inputSystem,
-			&m_transformSystem, &m_cameraSystem, &m_guiSystem, &m_dayNightSystem, config),
+								  &m_transformSystem, &m_cameraSystem, &m_guiSystem, &m_dayNightSystem, config),
 		"Scene control system can't initialized.");
 
 	PE_CHECK(result, m_ecsManager->RegisterSystem(&m_dayNightSystem));

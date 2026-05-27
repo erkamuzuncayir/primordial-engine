@@ -388,13 +388,13 @@ void SceneLoader::HandleTagKey(const std::string &key, const std::string &value)
 		if (!ref_eM->HasComponent<Components::Tag>(m_currentEntity))
 			ref_eM->AddComponent(m_currentEntity, Components::Tag{.name = value});
 		else
-			ref_eM->GetTIComponent<Components::Tag>(m_currentEntity)->name = value;
+			ref_eM->GetTComponent<Components::Tag>(m_currentEntity)->name = value;
 	} else
 		PE_LOG_ERROR("Unknown key-value config pair. Key:" + key + " Value:" + value);
 }
 
 void SceneLoader::HandleTransformKey(const std::string &key, const std::string &value) {
-	auto *tf = ref_eM->GetTIComponent<Components::Transform>(m_currentEntity);
+	auto *tf = ref_eM->GetTComponent<Components::Transform>(m_currentEntity);
 	if (key == "Parent") {
 		m_deferredParents.push_back({m_currentEntity, value});
 	} else if (key == "Position")
@@ -410,7 +410,7 @@ void SceneLoader::HandleTransformKey(const std::string &key, const std::string &
 }
 
 void SceneLoader::HandleCameraKey(const std::string &key, const std::string &value) {
-	auto *cam = ref_eM->GetTIComponent<Graphics::Components::Camera>(m_currentEntity);
+	auto *cam = ref_eM->GetTComponent<Graphics::Components::Camera>(m_currentEntity);
 	if (key == "IsActive")
 		cam->isActive = ParseBool(value);
 	else if (key == "FOVY")
@@ -427,7 +427,7 @@ void SceneLoader::HandleCameraKey(const std::string &key, const std::string &val
 }
 
 void SceneLoader::HandleDirectionalLightKey(const std::string &key, const std::string &value) {
-	auto *l = ref_eM->GetTIComponent<Graphics::Components::DirectionalLight>(m_currentEntity);
+	auto *l = ref_eM->GetTComponent<Graphics::Components::DirectionalLight>(m_currentEntity);
 	if (key == "Color")
 		l->color = ParseVector4(value);
 	else
@@ -435,7 +435,7 @@ void SceneLoader::HandleDirectionalLightKey(const std::string &key, const std::s
 }
 
 void SceneLoader::HandleMeshRendererKey(const std::string &key, const std::string &value) {
-	auto *mr = ref_eM->GetTIComponent<Graphics::Components::MeshRenderer>(m_currentEntity);
+	auto *mr = ref_eM->GetTComponent<Graphics::Components::MeshRenderer>(m_currentEntity);
 	if (key == "Mesh") {
 		if (auto const *modelAssetInfo = Assets::AssetManager::GetModelAssetInfo(value)) {
 			mr->subMeshes.clear();
@@ -483,7 +483,7 @@ void SceneLoader::HandleMeshRendererKey(const std::string &key, const std::strin
 }
 
 void SceneLoader::HandleParticleEmitterKey(const std::string &key, const std::string &value) {
-	auto *emitter = ref_eM->GetTIComponent<Graphics::Components::ParticleEmitter>(m_currentEntity);
+	auto *emitter = ref_eM->GetTComponent<Graphics::Components::ParticleEmitter>(m_currentEntity);
 	if (!emitter) return;
 
 	if (key == "Type") {
@@ -511,7 +511,7 @@ void SceneLoader::HandleParticleEmitterKey(const std::string &key, const std::st
 }
 
 void SceneLoader::HandleDayNightCycleKey(const std::string &key, const std::string &value) {
-	auto *comp = ref_eM->GetTIComponent<Components::DayNightCycle>(m_currentEntity);
+	auto *comp = ref_eM->GetTComponent<Components::DayNightCycle>(m_currentEntity);
 	if (!comp) return;
 
 	if (key == "TimeOfDay")
@@ -639,7 +639,7 @@ void SceneLoader::FinalizeHierarchy() {
 			}
 		}
 		if (parentID != ECS::INVALID_ENTITY_ID) {
-			auto *childTf			= ref_eM->GetTIComponent<Components::Transform>(childID);
+			auto *childTf			= ref_eM->GetTComponent<Components::Transform>(childID);
 			childTf->parentEntityID = parentID;
 			childTf->state			= Components::Transform::TransformState::Dirty;
 		} else {
@@ -665,7 +665,7 @@ void SceneLoader::FinalizeDayNightCycle() {
 		}
 
 		if (targetID != ECS::INVALID_ENTITY_ID) {
-			if (auto *comp = ref_eM->GetTIComponent<Components::DayNightCycle>(link.cycleEntity)) {
+			if (auto *comp = ref_eM->GetTComponent<Components::DayNightCycle>(link.cycleEntity)) {
 				if (link.targetType == 0)
 					comp->sunEntity = targetID;
 				else if (link.targetType == 1)

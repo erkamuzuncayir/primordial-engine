@@ -48,14 +48,14 @@ VkResult VulkanSwapchain::AcquireNextImage(VkSemaphore imageAvailableSemaphore, 
 VkResult VulkanSwapchain::Present(VkSemaphore renderFinishedSemaphore, uint32_t imageIndex) {
 	VkSwapchainKHR	 swapChains[] = {m_vkSwapchain};
 	VkPresentInfoKHR presentInfo  = {
-		 .sType				 = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-		 .waitSemaphoreCount = 1,
-		 .pWaitSemaphores	 = &renderFinishedSemaphore,
-		 .swapchainCount	 = 1,
-		 .pSwapchains		 = swapChains,
-		 .pImageIndices		 = &imageIndex,
-		 .pResults			 = nullptr,
-	 };
+		.sType				= VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+		.waitSemaphoreCount = 1,
+		.pWaitSemaphores	= &renderFinishedSemaphore,
+		.swapchainCount		= 1,
+		.pSwapchains		= swapChains,
+		.pImageIndices		= &imageIndex,
+		.pResults			= nullptr,
+	};
 
 	return vkQueuePresentKHR(ref_vulkanDevice->GetPresentQueue(), &presentInfo);
 }

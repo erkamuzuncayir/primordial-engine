@@ -76,11 +76,11 @@ void RenderSystem::OnUpdate(float dt) {
 	auto						 positionOfDirLight = Math::Vec3(0, 100, 0);
 
 	if (activeLightID != ECS::INVALID_ENTITY_ID) {
-		if (auto *light = ref_eM->TryGetTIComponent<Components::DirectionalLight>(activeLightID)) {
+		if (auto *light = ref_eM->TryGetTComponent<Components::DirectionalLight>(activeLightID)) {
 			dirLightData = *light;
 		}
 
-		if (auto *tf = ref_eM->TryGetTIComponent<Scene::Components::Transform>(activeLightID)) {
+		if (auto *tf = ref_eM->TryGetTComponent<Scene::Components::Transform>(activeLightID)) {
 			positionOfDirLight = tf->position;
 		}
 	} else {
