@@ -102,7 +102,7 @@ ModelLoadResult LoadOBJ(const std::filesystem::path &path) {
 	std::string			  modelName = objPath.stem().string();
 
 	result.modelAssetInfo.name = modelName;
-	result.modelAssetInfo.sourcePaths.push_back(objPath);
+	result.modelAssetInfo.paths.push_back(objPath);
 
 	std::vector<Math::Vec3> rawPos;
 	std::vector<Math::Vec2> rawUV;
@@ -127,9 +127,9 @@ ModelLoadResult LoadOBJ(const std::filesystem::path &path) {
 			pm.assetInfo.indexCount	 = static_cast<uint32_t>(pm.meshData.Indices.size());
 
 			ModelAssetInfo::SubMeshEntry entry;
-			entry.meshAssetName = pm.assetInfo.name;
+			// entry.meshGuid = pm.assetInfo.name;
 
-			entry.materialAssetName = modelName + "_Mat_" + currentRawMatName;
+			// entry.materialGuid = modelName + "_Mat_" + currentRawMatName;
 
 			result.modelAssetInfo.subMeshes.push_back(entry);
 			result.meshes.push_back(std::move(pm));
@@ -161,9 +161,9 @@ ModelLoadResult LoadOBJ(const std::filesystem::path &path) {
 			std::filesystem::path mtlPath = rootDir / mtlFilename;
 			if (!LoadMTL(mtlPath, modelName, result)) {
 				MaterialAssetInfo newMat;
-				newMat.name			   = AssetManager::ErrorMaterialName;
-				newMat.shaderAssetName = AssetManager::DefaultShaderName;
-				newMat.sourcePaths.push_back(mtlPath);
+				newMat.name = AssetManager::ErrorMaterialName;
+				// newMat.shaderGuid = AssetManager::DefaultShaderName;
+				newMat.paths.push_back(mtlPath);
 				newMat.type = AssetType::Material;
 				result.materials.push_back(newMat);
 				PE_LOG_WARN("mtllib file can't found at " + mtlPath.string());
@@ -245,9 +245,9 @@ bool LoadMTL(const std::filesystem::path &mtlPath, const std::string &modelNameP
 
 			MaterialAssetInfo newMat;
 
-			newMat.name			   = modelNamePrefix + "_Mat_" + matNameRaw;
-			newMat.shaderAssetName = AssetManager::DefaultShaderName;
-			newMat.sourcePaths.push_back(mtlPath);
+			newMat.name = modelNamePrefix + "_Mat_" + matNameRaw;
+			// newMat.shaderGuid = AssetManager::DefaultShaderName;
+			newMat.paths.push_back(mtlPath);
 			newMat.type = AssetType::Material;
 
 			newMat.properties[Graphics::MaterialProperty::Metallic]			 = 0.0f;
@@ -305,7 +305,7 @@ bool LoadMTL(const std::filesystem::path &mtlPath, const std::string &modelNameP
 
 			TextureAssetInfo texInfo;
 			texInfo.name = currentMat->name + name;
-			texInfo.sourcePaths.push_back(fullTexPath);
+			texInfo.paths.push_back(fullTexPath);
 
 			Graphics::Texture tempTex;
 			if (const bool loaded = Texture::Loader::Load(fullTexPath, tempTex); !loaded) {
@@ -316,7 +316,7 @@ bool LoadMTL(const std::filesystem::path &mtlPath, const std::string &modelNameP
 
 			outResult.textures.push_back(texInfo);
 
-			currentMat->textureBindings[texType] = {texInfo.name, texInfo.sourcePaths};
+			currentMat->textureBindings[texType] = {texInfo.name, texInfo.paths};
 		};
 
 		if (type == "map_Kd") {

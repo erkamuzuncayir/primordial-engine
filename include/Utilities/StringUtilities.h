@@ -6,9 +6,7 @@ namespace PE::Utilities {
 namespace String {
 static std::string Trim(const std::string &str) {
 	const size_t first = str.find_first_not_of(" \t\n\r\f\v");
-	if (std::string::npos == first) {
-		return str;
-	}
+	if (std::string::npos == first) { return str; }
 	const size_t last = str.find_last_not_of(" \t\n\r\f\v");
 	return str.substr(first, (last - first + 1));
 }

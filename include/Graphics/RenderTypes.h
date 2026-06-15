@@ -5,6 +5,7 @@
 #include "Math/Math.h"
 #include "Utilities/EnumReflection.h"
 #include "Vertex.h"
+#include "Common/TypedHandle.h"
 
 #ifdef PE_D3D11
 #include <d3d11.h>
@@ -13,12 +14,20 @@
 #endif
 
 namespace PE::Graphics {
-using TextureID		 = uint32_t;
-using ShaderID		 = uint32_t;
-using MaterialID	 = uint32_t;
-using MeshID		 = uint32_t;
-using RenderTargetID = uint32_t;
-using SamplerID		 = uint32_t;
+
+struct TextureTag {};
+struct ShaderTag {};
+struct MaterialTag {};
+struct MeshTag {};
+struct RenderTargetTag {};
+struct SamplerTag {};
+
+using TextureID      = TypedHandle<TextureTag>;
+using ShaderID       = TypedHandle<ShaderTag>;
+using MaterialID     = TypedHandle<MaterialTag>;
+using MeshID         = TypedHandle<MeshTag>;
+using RenderTargetID = TypedHandle<RenderTargetTag>;
+using SamplerID      = TypedHandle<SamplerTag>;
 
 constexpr uint32_t INVALID_HANDLE = UINT32_MAX;
 
@@ -28,8 +37,8 @@ struct RenderKey {
 	uint64_t value;
 
 	static uint64_t Create(const uint8_t layer, const ShaderID shaderID, const MaterialID matID, const uint32_t depth) {
-		return (static_cast<uint64_t>(layer) << 60) | ((static_cast<uint64_t>(shaderID) & 0xFFF) << 48) |
-			   ((static_cast<uint64_t>(matID) & 0xFFFF) << 32) | (depth & 0xFFFFFFFF);
+		return (static_cast<uint64_t>(layer) << 60) | ((static_cast<uint64_t>(shaderID.value) & 0xFFF) << 48) |
+			   ((static_cast<uint64_t>(matID.value) & 0xFFFF) << 32) | (static_cast<uint64_t>(depth) & 0xFFFFFFFF);
 	}
 };
 
@@ -44,8 +53,8 @@ enum RenderFlags : uint8_t {
 
 struct RenderCommand {
 	uint64_t	key		   = UINT64_MAX;
-	MeshID		meshID	   = INVALID_HANDLE;
-	MaterialID	materialID = INVALID_HANDLE;
+	MeshID		meshID;
+	MaterialID	materialID;
 	Math::Mat44 worldMatrix{};
 	uint32_t	ownerEntityID = ECS::INVALID_ENTITY_ID;
 	uint8_t		flags		  = RenderFlag_None;

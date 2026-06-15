@@ -39,9 +39,7 @@ public:
 		while (std::getline(file, line)) {
 			std::string trimmedLine = String::Trim(line);
 
-			if (trimmedLine.empty() || trimmedLine[0] == ';' || trimmedLine[0] == '#') {
-				continue;
-			}
+			if (trimmedLine.empty() || trimmedLine[0] == ';' || trimmedLine[0] == '#') { continue; }
 
 			if (trimmedLine[0] == '[' && trimmedLine.back() == ']') {
 				currentSection = String::Trim(trimmedLine.substr(1, trimmedLine.length() - 2));
@@ -55,9 +53,7 @@ public:
 				args.isAnyArgumentSet = true;
 
 				if (currentSection == "Engine") {
-					if (key == "developerMode") {
-						args.developerMode = String::ParseBool(value);
-					}
+					if (key == "developerMode") { args.developerMode = String::ParseBool(value); }
 				} else if (currentSection == "Graphics") {
 					if (key == "api") {
 						if (value == "D3D11")
@@ -104,18 +100,14 @@ public:
 	}
 
 	static void GetCommandlineArguments(const int argc, char **argv, CommandLineArguments &args) {
-		if (argc > 1) {
-			args.isAnyArgumentSet = true;
-		}
+		if (argc > 1) { args.isAnyArgumentSet = true; }
 
 		for (int i = 1; i < argc; ++i) {
 			std::string_view arg(argv[i]);
 
 			// Helper lambda to safely grab the next argument without crashing
 			auto getNextArg = [&]() -> std::string_view {
-				if (i + 1 < argc) {
-					return argv[++i];
-				}
+				if (i + 1 < argc) { return argv[++i]; }
 				PE_LOG_ERROR("Missing value for argument: " + std::string(arg));
 				return {};
 			};

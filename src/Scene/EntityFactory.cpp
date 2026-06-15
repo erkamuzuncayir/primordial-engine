@@ -22,8 +22,8 @@ ECS::EntityID EntityFactory::CreatePrimitive(const Graphics::PrimitiveType type)
 	const ECS::EntityID entityID = ref_eM->CreateEntity();
 
 	Graphics::Components::MeshRenderer meshRenderer;
-	meshRenderer.subMeshes.emplace_back(Assets::AssetManager::RequestPrimitiveMesh(type),
-										Assets::AssetManager::RequestDefaultMaterial());
+	meshRenderer.subMeshes.emplace_back(Assets::AssetManager::CreatePrimitiveMesh(type),
+										Assets::AssetManager::GetDefaultMaterialID());
 
 	ref_eM->AddComponent<Components::Transform>(entityID, Components::Transform());
 	ref_eM->AddComponent<Graphics::Components::MeshRenderer>(entityID, meshRenderer);

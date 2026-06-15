@@ -96,9 +96,7 @@ ERROR_CODE VulkanPipeline::Initialize(VulkanDevice *device, const VulkanShader &
 
 	std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
-	if (desc.enableDepthBias) {
-		dynamicStates.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
-	}
+	if (desc.enableDepthBias) { dynamicStates.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS); }
 
 	VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
 	dynamicStateInfo.sType			   = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;

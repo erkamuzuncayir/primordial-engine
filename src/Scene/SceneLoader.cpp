@@ -199,17 +199,13 @@ Math::Vec2 SceneLoader::ParseVector2(const std::string &value) {
 float SceneLoader::ParseFloat(const std::string &value) {
 	try {
 		return std::stof(value);
-	} catch (...) {
-		return 0.0f;
-	}
+	} catch (...) { return 0.0f; }
 }
 
 int SceneLoader::ParseInt(const std::string &value) {
 	try {
 		return std::stoi(value);
-	} catch (...) {
-		return 0;
-	}
+	} catch (...) { return 0; }
 }
 
 bool SceneLoader::ParseBool(const std::string &value) { return (value == "true" || value == "1"); }
@@ -240,9 +236,7 @@ void SceneLoader::HandleTextureKey(const std::string &key, const std::string &va
 		m_texBuilder.params.arrayLayers = static_cast<uint8_t>(ParseInt(value));
 	else if (key == "Samples")
 		m_texBuilder.params.samples = static_cast<uint8_t>(ParseInt(value));
-	else {
-		PE_LOG_ERROR("Unknown key-value config pair. Key:" + key + " Value:" + value);
-	}
+	else { PE_LOG_ERROR("Unknown key-value config pair. Key:" + key + " Value:" + value); }
 }
 
 void SceneLoader::HandleShaderKey(const std::string &key, const std::string &value) {
@@ -278,7 +272,7 @@ void SceneLoader::HandleShaderKey(const std::string &key, const std::string &val
 
 void SceneLoader::HandleMaterialKey(const std::string &key, const std::string &value) {
 	if (key == "Shader") {
-		m_materialBuilder.shaderName = value;
+		m_materialBuilder.shaderPath = value;
 	} else if (auto matProp = StringToEnum(MAT_PROP_MAP, key); matProp.has_value()) {
 		switch (matProp.value()) {
 			case MaterialProperty::Color:
@@ -439,14 +433,14 @@ void SceneLoader::HandleMeshRendererKey(const std::string &key, const std::strin
 	if (key == "Mesh") {
 		if (auto const *modelAssetInfo = Assets::AssetManager::GetModelAssetInfo(value)) {
 			mr->subMeshes.clear();
-			for (auto &[meshAssetName, materialAssetName] : modelAssetInfo->subMeshes) {
-				MaterialID materialHandle = Assets::AssetManager::GetMaterialHandle(materialAssetName);
-				if (materialHandle == INVALID_HANDLE) materialHandle = Assets::AssetManager::RequestDefaultMaterial();
-				mr->subMeshes.emplace_back(Assets::AssetManager::GetMeshHandle(meshAssetName), materialHandle);
+			for (auto &[meshGuid, matGuid] : modelAssetInfo->subMeshes) {
+				MaterialID materialHandle = Assets::AssetManager::GetMaterialHandle(matGuid);
+				if (!materialHandle.IsValid()) materialHandle = Assets::AssetManager::GetDefaultMaterialID();
+				mr->subMeshes.emplace_back(Assets::AssetManager::GetMeshHandle(meshGuid), materialHandle);
 			}
 		} else {
-			MeshID meshID = Assets::AssetManager::GetMeshHandle(value);
-			if (meshID == INVALID_HANDLE) {
+			const MeshID meshID = Assets::AssetManager::GetMeshHandle(value);
+			if (!meshID.IsValid()) {
 				PE_LOG_ERROR("Entity " + std::to_string(m_currentEntity) + " referenced missing mesh: " + value);
 				return;
 			}
@@ -455,20 +449,19 @@ void SceneLoader::HandleMeshRendererKey(const std::string &key, const std::strin
 			mr->subMeshes.emplace_back();
 			mr->subMeshes[0].meshID = meshID;
 
-			mr->subMeshes[0].materialID = Assets::AssetManager::RequestDefaultMaterial();
+			mr->subMeshes[0].materialID = Assets::AssetManager::GetDefaultMaterialID();
 		}
 	} else if (key == "Material") {
-		if (const MaterialID matID = Assets::AssetManager::GetMaterialHandle(value); matID != INVALID_HANDLE) {
+		if (const MaterialID matID = Assets::AssetManager::GetMaterialHandle(value); matID.IsValid()) {
 			for (auto &sm : mr->subMeshes) sm.materialID = matID;
 		} else {
 			PE_LOG_WARN("Material not found: " + value);
 		}
 	} else if (key.find("Material/") == 0) {
-		std::string idxStr = key.substr(9);
-		int			idx	   = ParseInt(idxStr);
-		if (idx >= 0 && idx < mr->subMeshes.size()) {
-			MaterialID matID = Assets::AssetManager::GetMaterialHandle(value);
-			if (matID != INVALID_HANDLE) mr->subMeshes[idx].materialID = matID;
+		const std::string idxStr = key.substr(9);
+		if (const int idx = ParseInt(idxStr); idx >= 0 && idx < mr->subMeshes.size()) {
+			const MaterialID matID = Assets::AssetManager::GetMaterialHandle(value);
+			if (matID.IsValid()) mr->subMeshes[idx].materialID = matID;
 		}
 	} else if (key == "IsVisible")
 		mr->isVisible = ParseBool(value);
@@ -502,7 +495,7 @@ void SceneLoader::HandleParticleEmitterKey(const std::string &key, const std::st
 	else if (key == "VelocityVar")
 		emitter->velocityVar = ParseVector3(value);
 	else if (key == "Texture") {
-		if (const TextureID texID = Assets::AssetManager::GetTextureHandle(value); texID != INVALID_HANDLE)
+		if (const TextureID texID = Assets::AssetManager::GetTextureHandle(value); texID.IsValid())
 			emitter->textureID = texID;
 		else
 			PE_LOG_WARN("Particle Texture not found: " + value);
@@ -542,16 +535,14 @@ void SceneLoader::HandleDayNightCycleKey(const std::string &key, const std::stri
 		comp->dawnColor = ParseVector4(value);
 	else if (key == "MoonColor")
 		comp->moonColor = ParseVector4(value);
-	else {
-		PE_LOG_ERROR("Unknown DayNightCycle key: " + key);
-	}
+	else { PE_LOG_ERROR("Unknown DayNightCycle key: " + key); }
 }
 
 void SceneLoader::FinalizeTexture() {
 	if (!m_texBuilder.name.empty() && !m_texBuilder.paths.empty()) {
 		if (const auto id =
-				Assets::AssetManager::RequestTexture(m_texBuilder.name, m_texBuilder.paths, m_texBuilder.params);
-			id == INVALID_HANDLE) {
+				Assets::AssetManager::LoadTextureAsset(TODO, m_texBuilder.params);
+			!id.IsValid()) {
 			PE_LOG_WARN("Texture Resource Can't Load: " + m_texBuilder.name);
 		} else
 			PE_LOG_INFO("Texture Resource Loaded: " + m_texBuilder.name);
@@ -563,7 +554,7 @@ void SceneLoader::FinalizeShader() {
 	if (!m_shaderBuilder.name.empty()) {
 		if (const auto id = Assets::AssetManager::RequestShader(m_shaderBuilder.name, m_shaderBuilder.type,
 																m_shaderBuilder.vsPath, m_shaderBuilder.psPath);
-			id == INVALID_HANDLE) {
+			!id.IsValid()) {
 			PE_LOG_WARN("Shader Resource Can't Load: " + m_shaderBuilder.name);
 		} else
 			PE_LOG_INFO("Shader Resource Registered: " + m_shaderBuilder.name);
@@ -574,7 +565,7 @@ void SceneLoader::FinalizeShader() {
 void SceneLoader::FinalizeMesh() {
 	if (m_meshBuilder.name.empty()) return;
 
-	MeshID meshID = INVALID_HANDLE;
+	MeshID meshID{};
 
 	if (m_meshBuilder.type == "procedural") {
 		MeshData data;
@@ -602,7 +593,7 @@ void SceneLoader::FinalizeMesh() {
 		}
 
 		meshID = Assets::AssetManager::RequestMesh(m_meshBuilder.name, data);
-		if (meshID == INVALID_HANDLE)
+		if (!meshID.IsValid())
 			PE_LOG_WARN("Procedural Mesh can't created!");
 		else
 			PE_LOG_INFO("Procedural Mesh Created: " + m_meshBuilder.name);
@@ -612,15 +603,14 @@ void SceneLoader::FinalizeMesh() {
 			PE_LOG_WARN("Failed to load model: " + m_meshBuilder.name + " (Path: " + m_meshBuilder.path.string() + ")");
 			return;
 		} else
-			PE_LOG_INFO("OBJ Model Registered: " + modelInfo->name + " (Path: " + modelInfo->sourcePaths[0].string() +
-						")");
+			PE_LOG_INFO("OBJ Model Registered: " + modelInfo->name + " (Path: " + modelInfo->paths[0].string() + ")");
 	}
 	m_meshBuilder = MeshConfigBuilder();
 }
 
 void SceneLoader::FinalizeMaterial() {
 	if (!m_materialBuilder.name.empty()) {
-		if (const MaterialID matID = Assets::AssetManager::RequestMaterial(m_materialBuilder); matID == INVALID_HANDLE)
+		if (const MaterialID matID = Assets::AssetManager::RequestMaterial(m_materialBuilder); !matID.IsValid())
 			PE_LOG_WARN("Failed to load material: " + m_materialBuilder.name);
 		else
 			PE_LOG_INFO("Material Resource Registered: " + m_materialBuilder.name);
@@ -634,9 +624,7 @@ void SceneLoader::FinalizeHierarchy() {
 		ECS::EntityID parentID = ECS::INVALID_ENTITY_ID;
 		auto		 &tags	   = tagArr.Data();
 		for (int i = 0; i < tags.size(); i++) {
-			if (auto const &name = tags[i].name; name == parentName) {
-				parentID = tagArr.Index()[i];
-			}
+			if (auto const &name = tags[i].name; name == parentName) { parentID = tagArr.Index()[i]; }
 		}
 		if (parentID != ECS::INVALID_ENTITY_ID) {
 			auto *childTf			= ref_eM->GetTComponent<Components::Transform>(childID);

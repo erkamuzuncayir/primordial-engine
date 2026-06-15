@@ -35,6 +35,9 @@ ERROR_CODE GUISystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager 
 	m_stage		 = stage;
 	ref_eM		 = entityManager;
 	ref_renderer = renderer;
+	
+	m_selectedEntity = ECS::INVALID_ENTITY_ID;
+	m_shouldRender   = true; // GUI'nin başlangıçta renderlanmasını garanti altına alalım
 
 	m_fpsTimer = new Utilities::Timer();
 
@@ -64,9 +67,7 @@ void GUISystem::OnUpdate(float dt) {
 		DrawInspector();
 		DrawAssetBrowser();
 
-		if (m_showDemoWindow) {
-			ImGui::ShowDemoWindow(&m_showDemoWindow);
-		}
+		if (m_showDemoWindow) { ImGui::ShowDemoWindow(&m_showDemoWindow); }
 	}
 
 	Render();
@@ -101,13 +102,9 @@ void GUISystem::DrawHierarchy() {
 		}
 	}
 
-	for (uint32_t rootID : rootNodes) {
-		DrawEntityNodeRecursive(rootID, childMap);
-	}
+	for (uint32_t rootID : rootNodes) { DrawEntityNodeRecursive(rootID, childMap); }
 
-	if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered()) {
-		m_selectedEntity = ECS::INVALID_ENTITY_ID;
-	}
+	if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered()) { m_selectedEntity = ECS::INVALID_ENTITY_ID; }
 
 	ImGui::End();
 }
@@ -127,14 +124,10 @@ void GUISystem::DrawEntityNodeRecursive(uint32_t												   entityID,
 
 	bool opened = ImGui::TreeNodeEx((void *)(uint64_t)entityID, flags, "%s", name.c_str());
 
-	if (ImGui::IsItemClicked()) {
-		m_selectedEntity = entityID;
-	}
+	if (ImGui::IsItemClicked()) { m_selectedEntity = entityID; }
 
 	if (opened && hasChildren) {
-		for (uint32_t childID : childMap.at(entityID)) {
-			DrawEntityNodeRecursive(childID, childMap);
-		}
+		for (uint32_t childID : childMap.at(entityID)) { DrawEntityNodeRecursive(childID, childMap); }
 		ImGui::TreePop();
 	}
 }
@@ -205,9 +198,9 @@ void GUISystem::DrawInspector() {
 				for (int i = 0; i < mr->subMeshes.size(); ++i) {
 					auto &submesh = mr->subMeshes[i];
 					ImGui::PushID(i);
-					if (ImGui::TreeNode((void *)(intptr_t)i, "SubMesh %d", i)) {
-						ImGui::Text("Mesh ID: %d", (int)submesh.meshID);
-						ImGui::Text("Material ID: %d", (int)submesh.materialID);
+					if (ImGui::TreeNodeEx((void *)(intptr_t)i, ImGuiTreeNodeFlags_None, "SubMesh %d", i)) {
+						ImGui::Text("Mesh ID: %d", (int)submesh.meshID.value);
+						ImGui::Text("Material ID: %d", (int)submesh.materialID.value);
 						ImGui::TreePop();
 					}
 					ImGui::PopID();
@@ -245,7 +238,7 @@ void GUISystem::DrawInspector() {
 
 				ImGui::Separator();
 
-				int texID = static_cast<int>(emitter->textureID);
+				int texID = static_cast<int>(emitter->textureID.value);
 				if (ImGui::InputInt("Texture ID", &texID)) {
 					emitter->textureID = static_cast<Graphics::TextureID>(texID);
 				}
@@ -304,7 +297,7 @@ void GUISystem::DrawAssetBrowser() {
 
 	if (ImGui::BeginTabBar("AssetTabs")) {
 		if (ImGui::BeginTabItem("Textures")) {
-			const auto &registry = Assets::AssetManager::GetTextureRegistry();
+			const auto &registry = Assets::AssetManager::GetTextureGuidToAssetMap();
 			ImGui::Text("Count: %zu", registry.size());
 
 			if (ImGui::BeginTable("TexTable", 4,
@@ -319,12 +312,12 @@ void GUISystem::DrawAssetBrowser() {
 				for (const auto &[name, info] : registry) {
 					ImGui::TableNextRow();
 					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("%u", info->ref_handle);
+					ImGui::Text("%u", std::get<TextureID>(info->ref_handle).value);
 
 					ImGui::TableSetColumnIndex(1);
 					ImGui::Selectable(info->name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
-					if (ImGui::IsItemHovered() && !info->sourcePaths.empty()) {
-						ImGui::SetTooltip("Source: %s", info->sourcePaths[0].string().c_str());
+					if (ImGui::IsItemHovered() && !info->paths.empty()) {
+						ImGui::SetTooltip("Source: %s", info->paths[0].string().c_str());
 					}
 
 					ImGui::TableSetColumnIndex(2);
@@ -340,7 +333,7 @@ void GUISystem::DrawAssetBrowser() {
 		}
 
 		if (ImGui::BeginTabItem("Materials")) {
-			const auto &registry = Assets::AssetManager::GetMaterialRegistry();
+			const auto &registry = Assets::AssetManager::GetMaterialGuidToAssetMap();
 			ImGui::Text("Count: %zu", registry.size());
 
 			if (ImGui::BeginTable("MatTable", 3,
@@ -353,13 +346,13 @@ void GUISystem::DrawAssetBrowser() {
 				for (const auto &[name, info] : registry) {
 					ImGui::TableNextRow();
 					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("%u", info->ref_handle);
+					ImGui::Text("%u", std::get<MaterialID>(info->ref_handle).value);
 
 					ImGui::TableSetColumnIndex(1);
 					ImGui::TextUnformatted(info->name.c_str());
 
-					ImGui::TableSetColumnIndex(2);
-					ImGui::TextUnformatted(info->shaderAssetName.c_str());
+					// ImGui::TableSetColumnIndex(2);
+					// ImGui::TextUnformatted(std::to_string(static_cast<uint32_t>(info->shaderGuid)).c_str());
 				}
 				ImGui::EndTable();
 			}
@@ -367,7 +360,7 @@ void GUISystem::DrawAssetBrowser() {
 		}
 
 		if (ImGui::BeginTabItem("Meshes")) {
-			const auto &registry = Assets::AssetManager::GetMeshRegistry();
+			const auto &registry = Assets::AssetManager::GetMeshGuidToAssetMap();
 			ImGui::Text("Count: %zu", registry.size());
 
 			if (ImGui::BeginTable("MeshTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
@@ -380,7 +373,7 @@ void GUISystem::DrawAssetBrowser() {
 				for (const auto &[name, info] : registry) {
 					ImGui::TableNextRow();
 					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("%u", info->ref_handle);
+					ImGui::Text("%u", std::get<MeshID>(info->ref_handle).value);
 
 					ImGui::TableSetColumnIndex(1);
 					ImGui::TextUnformatted(info->name.c_str());
@@ -397,7 +390,7 @@ void GUISystem::DrawAssetBrowser() {
 		}
 
 		if (ImGui::BeginTabItem("Shaders")) {
-			const auto &registry = Assets::AssetManager::GetShaderRegistry();
+			const auto &registry = Assets::AssetManager::GetShaderGuidToAssetMap();
 			if (ImGui::BeginTable("ShaderTable", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
 				ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 50.0f);
 				ImGui::TableSetupColumn("Name");
@@ -407,7 +400,7 @@ void GUISystem::DrawAssetBrowser() {
 				for (const auto &[name, info] : registry) {
 					ImGui::TableNextRow();
 					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("%u", info->ref_handle);
+					ImGui::Text("%u", std::get<ShaderID>(info->ref_handle).value);
 					ImGui::TableSetColumnIndex(1);
 					ImGui::TextUnformatted(info->name.c_str());
 
@@ -469,9 +462,7 @@ void GUISystem::DrawPerformanceStats(float dt) {
 		ImGui::Text("Total Tris:    %.2f M", triM);
 		ImGui::Text("Total Verts:   %.2f M", vertM);
 
-		if (ImGui::IsItemHovered()) {
-			ImGui::SetTooltip("Includes all passes (Shadow + Main Render)");
-		}
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Includes all passes (Shadow + Main Render)"); }
 
 		ImGui::Separator();
 

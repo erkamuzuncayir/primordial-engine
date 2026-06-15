@@ -32,6 +32,6 @@ static std::vector<unsigned char> GetDefaultError() { return {255, 0, 255, 255};
 
 namespace Loader {
 bool Load(const std::filesystem::path &path, Graphics::Texture &texture);
-bool LoadCubemap(const std::vector<std::filesystem::path> &paths, Graphics::Texture &texture);
+bool LoadCubemap(std::span<const std::filesystem::path> paths, Graphics::Texture &texture);
 };	// namespace Loader
 }  // namespace PE::Assets::Texture

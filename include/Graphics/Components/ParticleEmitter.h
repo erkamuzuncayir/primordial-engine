@@ -23,7 +23,7 @@ struct ParticleEmitter {
 	float	   spawnRadius	= 10.0f;
 	Math::Vec3 velocityVar	= {0.5f, 1.0f, 0.5f};  // Random variance
 
-	TextureID textureID = INVALID_HANDLE;
+	TextureID textureID{};
 
 	// TODO: Change to fixed size general pool of array with max amount of particles.
 	std::vector<Particle> particles;

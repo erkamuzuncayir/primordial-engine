@@ -6,8 +6,8 @@
 namespace PE::Graphics::Components {
 struct MeshRenderer {
 	struct SubMeshInfo {
-		MeshID	   meshID	  = INVALID_HANDLE;
-		MaterialID materialID = INVALID_HANDLE;
+		MeshID	   meshID{};
+		MaterialID materialID{};
 	};
 
 	std::vector<SubMeshInfo> subMeshes;

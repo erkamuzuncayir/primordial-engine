@@ -22,8 +22,8 @@ struct DayNightCycle {
 
 	ECS::EntityID activeLightEntity = ECS::INVALID_ENTITY_ID;
 
-	Graphics::TextureID rainTexture = Graphics::INVALID_HANDLE;
-	Graphics::TextureID snowTexture = Graphics::INVALID_HANDLE;
+	Graphics::TextureID rainTexture{};
+	Graphics::TextureID snowTexture{};
 
 	Math::Vec4 dayColor	  = {1.0f, 0.95f, 0.8f, 1.0f};
 	Math::Vec4 dawnColor  = {1.0f, 0.4f, 0.2f, 1.0f};

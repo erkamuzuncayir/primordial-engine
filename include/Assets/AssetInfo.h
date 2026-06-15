@@ -5,47 +5,46 @@
 #include <variant>
 #include <vector>
 
+#include "GUID.h"
 #include "Graphics/RenderTypes.h"
 #include "Math/Math.h"
 
 namespace PE::Assets {
-using AssetGUID					 = uint64_t;
-constexpr AssetGUID INVALID_GUID = UINT64_MAX;
 
 enum class AssetType { Unknown = 0, Texture, Mesh, Material, Shader, Model, Scene, Count };
 
+using AssetHandle = std::variant<std::monostate, Graphics::MaterialID, Graphics::TextureID, Graphics::ShaderID, Graphics::MeshID>;
+
 struct AssetInfo {
-	virtual ~AssetInfo()						  = default;
-	AssetGUID						   guid		  = INVALID_GUID;
-	AssetGUID						   parentGuid = INVALID_GUID;
-	AssetType						   type		  = AssetType::Unknown;
-	std::string						   name;
-	std::vector<std::filesystem::path> sourcePaths;
-	uint32_t						   ref_handle = Graphics::INVALID_HANDLE;
-	[[nodiscard]] bool				   IsLoaded() const { return ref_handle != Graphics::INVALID_HANDLE; }
+	explicit                           AssetInfo(const AssetType type) : type(type) {}
+	virtual                            ~AssetInfo()						  = default;
+	GUID                               guid = INVALID_GUID;
+	AssetType                          type = AssetType::Unknown;
+	std::string                        name;
+	std::vector<std::filesystem::path> paths;
+	AssetHandle                        ref_handle = std::monostate();
+	[[nodiscard]] bool                 IsLoaded() const { return !std::holds_alternative<std::monostate>(ref_handle); }
 };
 
 struct TextureAssetInfo : AssetInfo {
-	TextureAssetInfo() { type = AssetType::Texture; }
+	TextureAssetInfo() : AssetInfo(AssetType::Texture) {}
 	Graphics::TextureParameters params{};
 };
 
 struct MeshAssetInfo : AssetInfo {
-	MeshAssetInfo() { type = AssetType::Mesh; }
+	MeshAssetInfo() : AssetInfo(AssetType::Mesh) {}
 	uint32_t vertexCount = 0;
 	uint32_t indexCount	 = 0;
 };
 
 struct ShaderAssetInfo : AssetInfo {
-	ShaderAssetInfo() { type = AssetType::Shader; }
-	Graphics::ShaderType  shaderType = Graphics::ShaderType::Lit;
-	std::filesystem::path vsPath;
-	std::filesystem::path psPath;
+	ShaderAssetInfo() : AssetInfo(AssetType::Shader) {}
+	Graphics::ShaderType shaderType = Graphics::ShaderType::Lit;
 };
 
 struct MaterialAssetInfo : AssetInfo {
-	MaterialAssetInfo() { type = AssetType::Material; }
-	std::string shaderAssetName;
+	MaterialAssetInfo() : AssetInfo(AssetType::Material) {}
+	GUID shaderGuid = INVALID_GUID;
 
 	std::unordered_map<Graphics::TextureType, std::pair<std::string, std::vector<std::filesystem::path>>>
 		textureBindings;
@@ -54,11 +53,11 @@ struct MaterialAssetInfo : AssetInfo {
 };
 
 struct ModelAssetInfo : AssetInfo {
-	ModelAssetInfo() { type = AssetType::Model; }
+	ModelAssetInfo() : AssetInfo(AssetType::Model) {}
 
 	struct SubMeshEntry {
-		std::string meshAssetName;
-		std::string materialAssetName;
+		GUID meshGuid	  = INVALID_GUID;
+		GUID materialGuid = INVALID_GUID;
 	};
 
 	std::vector<SubMeshEntry> subMeshes;

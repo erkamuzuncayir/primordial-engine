@@ -1,12 +1,10 @@
 #include "ECS/Entity.h"
 
 namespace PE::ECS {
-bool Entity::Initialize(const uint32_t newId) {
-	id = newId;
+bool Entity::Initialize(const EntityID initialId) {
+	id = initialId;
 	return true;
 }
 
-void Entity::Shutdown() {
-	id = UINT32_MAX;  // UINT32_MAX is reserved id for null
-}
+void Entity::Shutdown() { id = INVALID_ENTITY_ID; }
 }  // namespace PE::ECS

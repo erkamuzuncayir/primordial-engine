@@ -108,9 +108,7 @@ void SceneManager::OnUpdate(float dt) {
 
 		if (m_fireEffectEndTime <= 0.0f) {
 			auto *emitter = ref_eM->GetTComponent<Graphics::Components::ParticleEmitter>(m_burningTreeID);
-			if (emitter) {
-				emitter->spawnRate = 0.0f;
-			}
+			if (emitter) { emitter->spawnRate = 0.0f; }
 			m_isFireActive	= false;
 			m_burningTreeID = ECS::INVALID_ENTITY_ID;
 

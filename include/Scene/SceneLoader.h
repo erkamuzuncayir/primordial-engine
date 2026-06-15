@@ -37,7 +37,7 @@ struct ShaderConfigBuilder {
 
 struct MaterialConfigBuilder {
 	std::string			 name;
-	std::string			 shaderName;
+	std::string			 shaderPath;
 	Graphics::MaterialID id;
 	std::unordered_map<Graphics::MaterialProperty, std::variant<float, int, Math::Vec2, Math::Vec3, Math::Vec4>>
 		matProperties;

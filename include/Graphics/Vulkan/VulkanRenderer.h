@@ -152,11 +152,11 @@ private:
 	std::vector<ParticleBatch> m_particleBatches;
 
 	std::array<VkSampler, static_cast<size_t>(SamplerType::Count)> m_globalSamplers;
-	ResourcePool<VulkanRenderTargetWrapper>						   m_renderTargets;
-	ResourcePool<VulkanShader>									   m_shaders;
-	ResourcePool<VulkanTextureWrapper>							   m_textures;
-	ResourcePool<VulkanMeshWrapper>								   m_meshes;
-	ResourcePool<Material>										   m_materials;
+	ResourcePool<VulkanRenderTargetWrapper, RenderTargetID>						   m_renderTargets;
+	ResourcePool<VulkanShader, ShaderID>									   m_shaders;
+	ResourcePool<VulkanTextureWrapper, TextureID>							   m_textures;
+	ResourcePool<VulkanMeshWrapper, MeshID>								   m_meshes;
+	ResourcePool<Material, MaterialID>										   m_materials;
 
 	uint32_t			m_currentFrame		 = 0;
 	std::pair<int, int> m_lastWidthAndHeight = {0, 0};

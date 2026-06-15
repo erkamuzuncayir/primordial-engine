@@ -37,8 +37,8 @@ ERROR_CODE Engine::Initialize(Platform::PlatformSystem *platformSystem, EngineCo
 						  m_sceneLoader.Initialize(m_ecsManager, config.renderConfig, m_renderSystem.GetRenderer()));
 	const std::filesystem::path demoScenePath =
 		std::filesystem::path("demo-scenes") / "desert-globe" / "desert-globe.ini";
-	m_sceneLoader.LoadScene(Utilities::IOUtilities::GetAssetPath(demoScenePath.string()));
-	m_sceneManager.SelectControlledEntity(Graphics::Systems::CameraType::Overview);
+	//m_sceneLoader.LoadScene(Utilities::IOUtilities::GetAssetPath(demoScenePath.string()));
+	//m_sceneManager.SelectControlledEntity(Graphics::Systems::CameraType::Overview);
 
 	m_state = SystemState::Running;
 	return result;

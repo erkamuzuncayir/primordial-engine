@@ -7,7 +7,7 @@
 
 namespace PE::Graphics::Vulkan {
 struct PipelineDescription {
-	ShaderID shaderID = INVALID_HANDLE;
+	ShaderID shaderID{};
 
 	bool			wireframe		 = false;
 	VkCullModeFlags cullMode		 = VK_CULL_MODE_BACK_BIT;
@@ -28,7 +28,7 @@ struct PipelineDescription {
 
 			auto hash_combine = [&seed](const size_t value) { seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2); };
 
-			hash_combine(std::hash<uint32_t>{}(desc.shaderID));
+			hash_combine(std::hash<ShaderID>{}(desc.shaderID));
 			hash_combine(std::hash<bool>{}(desc.wireframe));
 			hash_combine(std::hash<VkCullModeFlags>{}(desc.cullMode));
 			hash_combine(std::hash<bool>{}(desc.enableDepthTest));
@@ -124,7 +124,7 @@ struct VulkanRenderTargetWrapper {
 	VkImageView	   imageView = VK_NULL_HANDLE;
 	VkDeviceMemory memory	 = VK_NULL_HANDLE;
 	VkFormat	   format	 = VK_FORMAT_UNDEFINED;
-	TextureID	   textureID = 0;
+	TextureID	   textureID{};
 
 	VulkanRenderTargetWrapper() = default;
 
@@ -139,7 +139,7 @@ struct VulkanRenderTargetWrapper {
 			imageView = std::exchange(other.imageView, VK_NULL_HANDLE);
 			memory	  = std::exchange(other.memory, VK_NULL_HANDLE);
 			format	  = std::exchange(other.format, VK_FORMAT_UNDEFINED);
-			textureID = std::exchange(other.textureID, 0);
+			textureID = std::exchange(other.textureID, TextureID{});
 		}
 		return *this;
 	}

@@ -30,9 +30,7 @@ void Mouse::Update() {
 }
 
 void Mouse::SetButtonState(const int button, const bool state) {
-	if (button >= 0 && button < 8) {
-		m_buttons[button] = state;
-	}
+	if (button >= 0 && button < 8) { m_buttons[button] = state; }
 }
 
 void Mouse::SetPosition(const double x, const double y) {

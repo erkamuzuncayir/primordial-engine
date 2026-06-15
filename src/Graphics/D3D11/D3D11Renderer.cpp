@@ -407,7 +407,7 @@ void D3D11Renderer::SetRenderTargets(std::span<const RenderTargetID>(targets), R
 	}
 
 	ID3D11DepthStencilView *dsv =
-		(depthStencil == INVALID_HANDLE) ? m_depthStencilView : m_renderTargets.Get(depthStencil).dsv;
+		(!depthStencil.IsValid()) ? m_depthStencilView : m_renderTargets.Get(depthStencil).dsv;
 	m_context->OMSetRenderTargets(static_cast<uint32_t>(views.size()), views.data(), dsv);
 }
 
@@ -416,7 +416,7 @@ void D3D11Renderer::ClearRenderTarget(RenderTargetID id, const float color[4]) {
 }
 
 void D3D11Renderer::ClearDepth(RenderTargetID id) {
-	ID3D11DepthStencilView *dsv = (id == INVALID_HANDLE) ? m_depthStencilView : m_renderTargets.Get(id).dsv;
+	ID3D11DepthStencilView *dsv = (!id.IsValid()) ? m_depthStencilView : m_renderTargets.Get(id).dsv;
 	m_context->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
@@ -536,9 +536,7 @@ ERROR_CODE D3D11Renderer::GetDedicatedGPUAdapter(IDXGIAdapter *&adapter) {
 		if (desc.DedicatedVideoMemory > maxVRAM) {
 			maxVRAM = desc.DedicatedVideoMemory;
 
-			if (adapter != nullptr) {
-				adapter->Release();
-			}
+			if (adapter != nullptr) { adapter->Release(); }
 
 			adapter = current;
 		} else {
@@ -548,9 +546,7 @@ ERROR_CODE D3D11Renderer::GetDedicatedGPUAdapter(IDXGIAdapter *&adapter) {
 
 	SafeRelease(factory);
 
-	if (adapter == nullptr) {
-		return ERROR_CODE::DX11_PIPELINE_CREATION_FAILED;
-	}
+	if (adapter == nullptr) { return ERROR_CODE::DX11_PIPELINE_CREATION_FAILED; }
 
 	return ERROR_CODE::OK;
 }
@@ -559,9 +555,7 @@ ERROR_CODE D3D11Renderer::EnumerateAdapters() {
 	IDXGIFactory *factory = nullptr;
 	HRESULT hResult = LOG_HR_RESULT(CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void **>(&factory)),
 									Utilities::LogLevel::Fatal, "HRESULT failed to creating DXGIFactory!");
-	if (FAILED(hResult)) {
-		return ERROR_CODE::DX11_PIPELINE_CREATION_FAILED;
-	}
+	if (FAILED(hResult)) { return ERROR_CODE::DX11_PIPELINE_CREATION_FAILED; }
 
 	uint32_t	  adapterIndex	= 0;
 	IDXGIAdapter *adapter		= nullptr;

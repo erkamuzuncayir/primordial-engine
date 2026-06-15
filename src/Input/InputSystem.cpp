@@ -39,9 +39,7 @@ void InputSystem::OnUpdate(const float dt) {
 	m_mouse.Update();
 
 	for (const auto &[actionId, refCount] : m_activeActions) {
-		if (refCount > 0) {
-			Dispatch(actionId, ActionType::Continue, dt, InputState::Repeat);
-		}
+		if (refCount > 0) { Dispatch(actionId, ActionType::Continue, dt, InputState::Repeat); }
 	}
 }
 
@@ -51,9 +49,7 @@ void InputSystem::Dispatch(ActionID action, ActionType type, float value, InputS
 
 	if (const auto it = map.find(action); it != map.end()) {
 		const InputContext ctx{action, value, state};
-		for (const auto &listener : it->second) {
-			listener.Callback(ctx);
-		}
+		for (const auto &listener : it->second) { listener.Callback(ctx); }
 	}
 }
 
@@ -112,9 +108,7 @@ void InputSystem::HandleScroll(double xOffset, double yOffset) { m_mouse.SetScro
 void InputSystem::BindKey(const ActionID action, const KeyBinding binding) { m_keyBindings[binding] = action; }
 
 void InputSystem::UnbindKey(const KeyBinding binding) {
-	if (const auto it = m_keyBindings.find(binding); it != m_keyBindings.end()) {
-		m_keyBindings.erase(it);
-	}
+	if (const auto it = m_keyBindings.find(binding); it != m_keyBindings.end()) { m_keyBindings.erase(it); }
 }
 
 void InputSystem::BindMouseButton(const ActionID action, const MouseBinding binding) {
@@ -122,9 +116,7 @@ void InputSystem::BindMouseButton(const ActionID action, const MouseBinding bind
 }
 
 void InputSystem::UnbindMouseButton(const MouseBinding binding) {
-	if (const auto it = m_mouseBindings.find(binding); it != m_mouseBindings.end()) {
-		m_mouseBindings.erase(it);
-	}
+	if (const auto it = m_mouseBindings.find(binding); it != m_mouseBindings.end()) { m_mouseBindings.erase(it); }
 }
 
 CallbackID InputSystem::Subscribe(const InputAction &inputAction) {

@@ -54,9 +54,7 @@ void VulkanDevice::Shutdown() {
 
 	m_state = SystemState::ShuttingDown;
 	vkDestroyDevice(m_vkDevice, nullptr);
-	if (m_enableValidationLayers) {
-		DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
-	}
+	if (m_enableValidationLayers) { DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr); }
 	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 	vkDestroyInstance(m_instance, nullptr);
 
@@ -172,9 +170,7 @@ ERROR_CODE VulkanDevice::PickPhysicalDevice() {
 	vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
 
 	if (deviceCount < 2) {
-		if (IsDeviceSuitable(devices[0])) {
-			m_vkPhysicalDevice = devices[0];
-		}
+		if (IsDeviceSuitable(devices[0])) { m_vkPhysicalDevice = devices[0]; }
 	} else {
 		std::multimap<uint32_t, VkPhysicalDevice> candidates;
 		for (const auto &device : devices) {
@@ -184,9 +180,7 @@ ERROR_CODE VulkanDevice::PickPhysicalDevice() {
 			}
 		}
 
-		if (!candidates.empty() && candidates.rbegin()->first > 0) {
-			m_vkPhysicalDevice = candidates.rbegin()->second;
-		}
+		if (!candidates.empty() && candidates.rbegin()->first > 0) { m_vkPhysicalDevice = candidates.rbegin()->second; }
 	}
 
 	if (m_vkPhysicalDevice == VK_NULL_HANDLE) {
@@ -270,9 +264,7 @@ uint32_t VulkanDevice::RateDeviceSuitability(VkPhysicalDevice physicalDevice) {
 	VkPhysicalDeviceProperties deviceProperties;
 	vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
 
-	if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-		score += 1000;
-	}
+	if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) { score += 1000; }
 
 	score += deviceProperties.limits.maxImageDimension2D;
 
@@ -286,9 +278,7 @@ bool VulkanDevice::CheckDeviceExtensionSupport(VkPhysicalDevice physicalDevice) 
 	vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.data());
 
 	std::set<std::string> requiredExtensions(m_deviceExtensions.begin(), m_deviceExtensions.end());
-	for (const auto &extension : availableExtensions) {
-		requiredExtensions.erase(extension.extensionName);
-	}
+	for (const auto &extension : availableExtensions) { requiredExtensions.erase(extension.extensionName); }
 	return requiredExtensions.empty();
 }
 
@@ -301,14 +291,10 @@ VulkanDevice::QueueFamilyIndices VulkanDevice::FindQueueFamilies(VkPhysicalDevic
 
 	int i = 0;
 	for (const auto &queueFamily : queueFamilies) {
-		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-			indices.graphicsFamily = i;
-		}
+		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) { indices.graphicsFamily = i; }
 		VkBool32 presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, m_surface, &presentSupport);
-		if (presentSupport) {
-			indices.presentFamily = i;
-		}
+		if (presentSupport) { indices.presentFamily = i; }
 		if (indices.IsComplete()) break;
 		i++;
 	}
@@ -339,9 +325,7 @@ std::vector<const char *> VulkanDevice::GetRequiredExtensions() const {
 	const char **glfwExtensions		= glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
 	std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-	if (m_enableValidationLayers) {
-		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-	}
+	if (m_enableValidationLayers) { extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME); }
 	return extensions;
 }
 

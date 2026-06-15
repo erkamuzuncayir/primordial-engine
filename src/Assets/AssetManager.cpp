@@ -3,8 +3,10 @@
 #include <format>
 
 #include "Assets/AssetInfo.h"
+#include "Assets/GUID.h"
 #include "Assets/Model.h"
 #include "Assets/Texture.h"
+#include "Assets/Utilities.h"
 #include "Common/Common.h"
 #include "Core/EngineConfig.h"
 #include "Graphics/GeometryGenerator.h"
@@ -58,6 +60,7 @@ ERROR_CODE AssetManager::Initialize(Graphics::IRenderer *renderer, const Core::E
 	ReserveMemory(defaultAmount, defaultAmount, defaultAmount, defaultAmount, defaultAmount);
 
 	CreateDefaultRenderAssets();
+	ScanAssets();
 	PE_LOG_INFO("AssetManager initialized successfully.");
 	s_state = SystemState::Running;
 	return ERROR_CODE::OK;
@@ -68,37 +71,96 @@ ERROR_CODE AssetManager::Shutdown() {
 
 	s_state = SystemState::ShuttingDown;
 
-	s_texAssetRegistry.clear();
-	s_meshAssetRegistry.clear();
-	s_matAssetRegistry.clear();
-	s_shaderAssetRegistry.clear();
-	s_modelAssetRegistry.clear();
 	s_textureStore.clear();
 	s_meshStore.clear();
-	s_shaderStore.clear();
 	s_materialStore.clear();
+	s_shaderStore.clear();
+	s_modelStore.clear();
+	s_texPathToGuidMap.clear();
+	s_meshPathToGuidMap.clear();
+	s_matPathToGuidMap.clear();
+	s_shaderPathToGuidMap.clear();
+	s_modelPathToGuidMap.clear();
+	s_texGuidToAssetMap.clear();
+	s_meshGuidToAssetMap.clear();
+	s_matGuidToAssetMap.clear();
+	s_shaderGuidToAssetMap.clear();
+	s_modelGuidToAssetMap.clear();
 	s_texturesById.clear();
 	s_meshesById.clear();
 	s_shadersById.clear();
 	s_materialsById.clear();
+
 	ref_renderer = nullptr;
 	s_state		 = SystemState::Uninitialized;
 	PE_LOG_INFO("AssetManager shutdown complete.");
 	return ERROR_CODE::OK;
 }
 
-Graphics::TextureID AssetManager::RequestDefaultTexture(const Graphics::TextureType type) {
-	if (const auto handle = GetTextureHandle(s_defaultTextureNames[static_cast<Graphics::TextureID>(type)]);
-		Graphics::INVALID_HANDLE != handle)
-		return handle;
-
-	PE_LOG_FATAL("Default texture can't found!");
-	return Graphics::INVALID_HANDLE;
+ERROR_CODE AssetManager::RefreshAssetDatabase() {
+	// TODO:
+	return ERROR_CODE::OK;
 }
 
-Graphics::MeshID AssetManager::RequestPrimitiveMesh(const Graphics::PrimitiveType type, const float radius,
-													const float width, const float height, const float depth,
-													const int sliceCount, const int stackCount) {
+ERROR_CODE AssetManager::ScanAssets() {
+	const std::filesystem::path root = Utilities::IOUtilities::GetAssetsRoot();
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(root)) {
+		if (entry.is_regular_file()) {
+			const auto path = entry.path();
+			const auto filenameStr = path.filename().string();
+
+			std::string ext = path.extension().string();
+			std::ranges::transform(ext, ext.begin(), [](const unsigned char c) { return std::tolower(c); });
+
+			if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".tga" || ext == ".hdr" || ext == ".bmp") {
+				PE_LOG_INFO(std::format("Discovered Texture: {}", filenameStr));
+				CreateAssetInfo(AssetType::Texture, s_textureStore, s_texPathToGuidMap, path, path.stem().c_str());
+			}
+			else if (ext == ".obj" || ext == ".fbx" || ext == ".gltf" || ext == ".glb" || ext == ".dae") {
+				PE_LOG_INFO(std::format("Discovered Model: {}", filenameStr));
+				CreateAssetInfo(AssetType::Model, s_modelStore, s_modelPathToGuidMap, path, path.stem().c_str());
+			}
+			else if (ext == ".cso" || ext == ".spv" || ext == ".hlsl" || ext == ".glsl" || ext == ".vert" || ext == ".frag") {
+				PE_LOG_INFO(std::format("Discovered Shader: {}", filenameStr));
+				CreateAssetInfo(AssetType::Shader, s_shaderStore, s_shaderPathToGuidMap, path, path.stem().c_str());
+			}
+			else if (ext == ".mat" || ext == ".pemat") {
+				PE_LOG_INFO(std::format("Discovered Material: {}", filenameStr));
+				CreateAssetInfo(AssetType::Material, s_materialStore, s_matPathToGuidMap, path, path.stem().c_str());
+			}
+			else {
+				PE_LOG_WARN(std::format("Unknown file type: {}", path.filename().string()));
+			}
+		}
+	}
+	return ERROR_CODE::OK;
+}
+
+ERROR_CODE AssetManager::ImportAsset() {
+	return ERROR_CODE::OK;
+}
+
+Graphics::TextureID AssetManager::GetDefaultTextureIDByType(const Graphics::TextureType type) {
+	const size_t typeIndex = static_cast<size_t>(type);
+
+	if (typeIndex >= s_defaultTextureGUIDs.size()) {
+		PE_LOG_ERROR("Invalid or out-of-bounds TextureType requested!");
+		return {};
+	}
+
+	if (const auto handle = GetTextureHandle(s_defaultTextureGUIDs[typeIndex]); handle.IsValid()) {
+		return handle;
+	}
+
+	PE_LOG_FATAL("Default texture can't found!");
+	return {};
+}
+
+Graphics::TextureID AssetManager::GetErrorTextureID() { return GetTextureHandle(ErrorTextureGuid); }
+
+Graphics::MeshID AssetManager::CreatePrimitiveMesh(const Graphics::PrimitiveType type, const float radius,
+                                                    const float width, const float height, const float depth,
+                                                    const int sliceCount, const int stackCount) {
 	Graphics::MeshData data;
 	std::string		   name;
 	switch (type) {
@@ -132,24 +194,15 @@ Graphics::MeshID AssetManager::RequestPrimitiveMesh(const Graphics::PrimitiveTyp
 	return id;
 }
 
-Graphics::ShaderID AssetManager::RequestDefaultShader() { return DefaultShaderID; }
+Graphics::ShaderID AssetManager::GetDefaultShaderID() { return DefaultShaderID; }
 
-Graphics::ShaderID AssetManager::RequestParticleShader() { return DefaultParticleShaderID; }
+Graphics::ShaderID AssetManager::GetDefaultParticleShaderID() { return DefaultParticleShaderID; }
 
-Graphics::MaterialID AssetManager::RequestDefaultMaterial() { return DefaultMaterialID; }
+Graphics::MaterialID AssetManager::GetDefaultMaterialID() { return DefaultMaterialID; }
 
-Graphics::TextureID AssetManager::RequestTexture(const std::string						  &name,
-												 const std::vector<std::filesystem::path> &paths,
-												 const Graphics::TextureParameters		  &params) {
-	std::string texName = name;
-	if (texName.empty()) texName = paths[0].stem().string();
-
-	if (const uint32_t handle = GetTextureHandle(texName); Graphics::INVALID_HANDLE != handle) return handle;
-
-	if (paths.empty()) {
-		PE_LOG_ERROR("Path is missing while requesting texture:" + name);
-		return Graphics::INVALID_HANDLE;
-	}
+Graphics::TextureID AssetManager::LoadTextureAsset(const GUID guid, const Graphics::TextureParameters			 &params) {
+	TextureAssetInfo* assetInfo;
+	if (assetInfo = GetTextureAssetInfo(guid); !assetInfo) return {};
 
 	Graphics::Texture tempTex;
 	tempTex.SetParameters(params);
@@ -159,135 +212,140 @@ Graphics::TextureID AssetManager::RequestTexture(const std::string						  &name,
 		loaded = Texture::Loader::LoadCubemap(paths, tempTex);
 		if (!loaded) {
 			for (auto &path : paths) PE_LOG_ERROR("Failed to load texture: " + path.string());
-			return Graphics::INVALID_HANDLE;
+			return {};
 		}
 	} else {
 		loaded = Texture::Loader::Load(paths[0], tempTex);
 		if (!loaded) {
 			PE_LOG_ERROR("Failed to load texture: " + paths[0].string());
-			return Graphics::INVALID_HANDLE;
+			return {};
 		}
 	}
 
 	const Graphics::TextureID id =
 		ref_renderer->CreateTexture(texName, tempTex.GetTextureData().data(), tempTex.GetTextureParameters());
 
-	if (id != Graphics::INVALID_HANDLE) {
-		TextureAssetInfo *newInfo = AllocateAsset(s_textureStore);
-		newInfo->name			  = texName;
-		newInfo->sourcePaths	  = paths;
-		newInfo->type			  = AssetType::Texture;
-		newInfo->ref_handle		  = id;
-		newInfo->params			  = tempTex.GetTextureParameters();
-
-		s_texAssetRegistry[texName] = newInfo;
-		s_texturesById[id]			= newInfo;
+	if (id.IsValid()) {
+		TextureAssetInfo *newInfo = CreateAssetInfo(AssetType::Texture, s_textureStore, s_texPathToGuidMap, paths, texName);
+		newInfo->ref_handle = id;
+		newInfo->params		= tempTex.GetTextureParameters();
+		s_texturesById[id]	= newInfo;
 	}
 
 	return id;
 }
 
-Graphics::MeshID AssetManager::RequestMesh(const std::string &name) {
-	if (const uint32_t handle = GetMeshHandle(name); Graphics::INVALID_HANDLE != handle) return handle;
-	PE_LOG_WARN("Mesh not found in registry: " + name);
+Graphics::MeshID AssetManager::RequestMesh(const std::string_view path) {
+	if (const Graphics::MeshID handle = GetMeshHandle(PathKeyGenerator(path)); handle.IsValid())
+		return handle;
+	PE_LOG_WARN(std::format("Mesh not found in registry: {}", path));
 
-	return Graphics::INVALID_HANDLE;
+	return {};
 }
 
-Graphics::MeshID AssetManager::RequestMesh(const std::string &name, const Graphics::MeshData &meshData) {
-	if (const uint32_t handle = GetMeshHandle(name); Graphics::INVALID_HANDLE != handle) return handle;
+Graphics::MeshID AssetManager::RequestMesh(const std::string_view name, const Graphics::MeshData &meshData) {
+	if (const Graphics::MeshID handle = GetMeshHandle(MemoryAssetPathKeyGenerator(name));
+		handle.IsValid())
+		return handle;
 
-	const Graphics::MeshID id = ref_renderer->CreateMesh(name, meshData);
-	if (id != Graphics::INVALID_HANDLE) {
-		MeshAssetInfo *newInfo = AllocateAsset(s_meshStore);
+	const Graphics::MeshID id = ref_renderer->CreateMesh(name.data(), meshData);
+	if (id.IsValid()) {
+		MeshAssetInfo *newInfo = CreateAssetInfoForMemoryAsset(AssetType::Mesh, s_meshStore, s_meshPathToGuidMap, s_meshGuidToAssetMap, name);
 		newInfo->name		   = name;
-		newInfo->type		   = AssetType::Mesh;
 		newInfo->ref_handle	   = id;
 		newInfo->vertexCount   = static_cast<uint32_t>(meshData.Vertices.size());
 		newInfo->indexCount	   = static_cast<uint32_t>(meshData.Indices.size());
-
-		s_meshAssetRegistry[name] = newInfo;
-		s_meshesById[id]		  = newInfo;
+		s_meshesById[id]	   = newInfo;
 	}
 
 	return id;
 }
 
-Graphics::ShaderID AssetManager::RequestShader(const std::string &name, const Graphics::ShaderType type,
+Graphics::MeshID AssetManager::RequestMesh(const std::string_view						name,
+										   const std::span<const std::filesystem::path> paths,
+										   const Graphics::MeshData					   &meshData) {
+	if (const Graphics::MeshID handle = GetMeshHandle(PathKeyGenerator(paths)); handle.IsValid())
+		return handle;
+
+	const Graphics::MeshID id = ref_renderer->CreateMesh(name.data(), meshData);
+	if (id.IsValid()) {
+		MeshAssetInfo *newInfo = CreateAssetInfo(AssetType::Mesh, s_meshStore, s_meshPathToGuidMap, paths, name);
+		newInfo->ref_handle	   = id;
+		newInfo->vertexCount   = static_cast<uint32_t>(meshData.Vertices.size());
+		newInfo->indexCount	   = static_cast<uint32_t>(meshData.Indices.size());
+		s_meshesById[id]	   = newInfo;
+	}
+
+	return id;
+}
+
+Graphics::ShaderID AssetManager::RequestShader(const std::string_view name, const Graphics::ShaderType type,
 											   const std::filesystem::path &vsPath,
 											   const std::filesystem::path &psPath) {
-	if (const uint32_t handle = GetShaderHandle(name); Graphics::INVALID_HANDLE != handle) return handle;
+	const Graphics::ShaderID handle = GetShaderHandle(PathKeyGenerator(std::array{vsPath, psPath}));
+	if (handle.IsValid()) return handle;
 
 	const Graphics::ShaderID id = ref_renderer->CreateShader(type, vsPath, psPath);
 
-	if (id != Graphics::INVALID_HANDLE) {
-		ShaderAssetInfo *newInfo = AllocateAsset(s_shaderStore);
-		newInfo->name			 = name;
-		newInfo->type			 = AssetType::Shader;
-		newInfo->ref_handle		 = id;
-		newInfo->vsPath			 = vsPath;
-		newInfo->psPath			 = psPath;
-		newInfo->shaderType		 = type;
-
-		s_shaderAssetRegistry[name] = newInfo;
-		s_shadersById[id]			= newInfo;
+	if (id.IsValid()) {
+		const std::filesystem::path paths[] = {vsPath, psPath};
+		ShaderAssetInfo			   *newInfo = CreateAssetInfo(AssetType::Shader, s_shaderStore, s_shaderPathToGuidMap, paths, name);
+		newInfo->ref_handle = id;
+		newInfo->shaderType = type;
+		s_shadersById[id]	= newInfo;
 	}
 
 	return id;
 }
-
-Graphics::MaterialID AssetManager::RequestMaterial(const std::string &name, const std::string_view &shaderName) {
-	if (const Graphics::MaterialID handle = GetMaterialHandle(name.empty() ? DefaultMaterialName.data() : name);
-		Graphics::INVALID_HANDLE != handle)
+Graphics::MaterialID AssetManager::RequestMaterial(const std::string_view name, const GUID shaderGuid) {
+	if (const Graphics::MaterialID handle = GetMaterialHandle(
+			name.empty() ? MemoryAssetPathKeyGenerator(DefaultMaterialName) : MemoryAssetPathKeyGenerator(name));
+		handle.IsValid())
 		return handle;
 
-	const Graphics::ShaderID shaderID = GetShaderHandle(shaderName.data());
-
-	if (shaderID == Graphics::INVALID_HANDLE) {
+	const Graphics::ShaderID shaderID = GetShaderHandle(shaderGuid);
+	if (!shaderID.IsValid()) {
 		PE_LOG_FATAL("Can't find default shader!");
-		return shaderID;
+		return {};
 	}
 
-	const Graphics::MaterialID id = ref_renderer->CreateMaterial(shaderID);
-	if (id != Graphics::INVALID_HANDLE) {
-		MaterialAssetInfo *newInfo = AllocateAsset(s_materialStore);
-		newInfo->name			   = name;
-		newInfo->type			   = AssetType::Material;
-		newInfo->ref_handle		   = id;
-
-		s_matAssetRegistry[name] = newInfo;
-		s_materialsById[id]		 = newInfo;
+	const Graphics::MaterialID matID = ref_renderer->CreateMaterial(shaderID);
+	if (matID.IsValid()) {
+		MaterialAssetInfo *newInfo =
+			CreateAssetInfoForMemoryAsset(AssetType::Material, s_materialStore, s_matPathToGuidMap, s_matGuidToAssetMap, name);
+		newInfo->shaderGuid	   = shaderGuid;
+		newInfo->ref_handle	   = matID;
+		s_materialsById[matID] = newInfo;
 	}
 
-	return id;
+	return matID;
 }
 
 Graphics::MaterialID AssetManager::RequestMaterial(
-	const std::string &name,
+	const std::string_view name,
 	const std::unordered_map<Graphics::MaterialProperty, std::variant<float, int, Math::Vec2, Math::Vec3, Math::Vec4>>
 		&matProperties,
 	std::unordered_map<Graphics::TextureType, std::pair<std::string, std::vector<std::filesystem::path>>>
-					  &textureBindings,
-	const std::string &shaderName) {
-	if (const uint32_t handle = GetMaterialHandle(name); Graphics::INVALID_HANDLE != handle) return handle;
+			  &textureBindings, const GUID shaderGuid) {
+	if (const Graphics::MaterialID handle = GetMaterialHandle(MemoryAssetPathKeyGenerator(name));
+		handle.IsValid())
+		return handle;
 
-	const Graphics::ShaderID shaderID = GetShaderHandle(shaderName);
-	if (shaderID == Graphics::INVALID_HANDLE) return Graphics::INVALID_HANDLE;
+	const Graphics::ShaderID shaderID = GetShaderHandle(shaderGuid);
+	if (!shaderID.IsValid()) return {};
 
 	const Graphics::MaterialID matID = ref_renderer->CreateMaterial(shaderID);
-	if (matID != Graphics::INVALID_HANDLE) {
-		MaterialAssetInfo *newInfo = AllocateAsset(s_materialStore);
-		newInfo->name			   = name;
-		newInfo->shaderAssetName   = shaderName;
-		newInfo->type			   = AssetType::Material;
-		newInfo->ref_handle		   = matID;
+	if (matID.IsValid()) {
+		MaterialAssetInfo *newInfo =
+			CreateAssetInfoForMemoryAsset(AssetType::Material, s_materialStore, s_matPathToGuidMap, s_matGuidToAssetMap, name);
+		newInfo->shaderGuid = shaderGuid;
+		newInfo->ref_handle = matID;
 
 		auto &material = ref_renderer->GetMaterial(matID);
 		for (auto &[textureType, namePathsPair] : textureBindings) {
 			newInfo->textureBindings[textureType] = namePathsPair;
-			if (const Graphics::TextureID texID =
-					RequestTexture(namePathsPair.first, namePathsPair.second, {.type = textureType});
-				texID != Graphics::INVALID_HANDLE) {
+			if (const Graphics::TextureID texID = LoadTextureAsset(TODO, {.type = textureType});
+				texID.IsValid()) {
 				material.SetTexture(textureType, texID);
 			}
 		}
@@ -306,36 +364,46 @@ Graphics::MaterialID AssetManager::RequestMaterial(
 
 		ref_renderer->UpdateMaterial(matID);
 		for (auto &[type, namePathPair] : textureBindings) {
-			ref_renderer->UpdateMaterialTexture(matID, type, GetTextureHandle(namePathPair.first));
+			ref_renderer->UpdateMaterialTexture(matID, type, GetTextureHandle(PathKeyGenerator(namePathPair.second)));
 		}
 
-		s_matAssetRegistry[name] = newInfo;
-		s_materialsById[matID]	 = newInfo;
+		s_materialsById[matID] = newInfo;
 	}
 
 	return matID;
 }
 
 Graphics::MaterialID AssetManager::RequestMaterial(const Scene::MaterialConfigBuilder &builder) {
-	if (const uint32_t handle = GetMaterialHandle(builder.name); Graphics::INVALID_HANDLE != handle) return handle;
+	if (const Graphics::MaterialID handle = GetMaterialHandle(MemoryAssetPathKeyGenerator(builder.name));
+		handle.IsValid())
+		return handle;
 
-	const Graphics::ShaderID shaderID = GetShaderHandle(builder.shaderName);
-	if (shaderID == Graphics::INVALID_HANDLE) return Graphics::INVALID_HANDLE;
+	GUID shaderGUID;
+	Graphics::ShaderID shaderID;
+	if (s_shaderPathToGuidMap.contains(builder.shaderPath)) {
+		shaderGUID = s_shaderPathToGuidMap[builder.shaderPath];
+		shaderID = GetShaderHandle(shaderGUID);
+	}
+	else {
+		PE_LOG_WARN("Shader not found! Using default shader.");
+		shaderGUID = DefaultShaderGuid;
+		shaderID = GetDefaultShaderID();
+	}
+	if (!shaderID.IsValid()) return {};
 
 	const Graphics::MaterialID matID = ref_renderer->CreateMaterial(shaderID);
-	if (matID != Graphics::INVALID_HANDLE) {
-		MaterialAssetInfo *newInfo = AllocateAsset(s_materialStore);
-		newInfo->name			   = builder.name;
-		newInfo->shaderAssetName   = builder.shaderName;
-		newInfo->type			   = AssetType::Material;
-		newInfo->ref_handle		   = matID;
+	if (matID.IsValid()) {
+		MaterialAssetInfo *newInfo =
+			CreateAssetInfoForMemoryAsset(AssetType::Material, s_materialStore, s_matPathToGuidMap, s_matGuidToAssetMap, builder.name);
+		newInfo->shaderGuid                                 = shaderGUID;
+		newInfo->ref_handle.emplace<Graphics::MaterialID>(matID);
 
 		auto &material = ref_renderer->GetMaterial(matID);
 		for (auto &[textureType, namePathPair] : builder.textureBindings) {
 			newInfo->textureBindings[textureType] = namePathPair;
 			if (const Graphics::TextureID texID =
-					RequestTexture(namePathPair.first, namePathPair.second, {.type = textureType});
-				texID != Graphics::INVALID_HANDLE) {
+					LoadTextureAsset(TODO, {.type = textureType});
+				texID.IsValid()) {
 				material.SetTexture(textureType, texID);
 			}
 			if (builder.textureSamplerMap.contains(textureType))
@@ -356,18 +424,18 @@ Graphics::MaterialID AssetManager::RequestMaterial(const Scene::MaterialConfigBu
 
 		ref_renderer->UpdateMaterial(matID);
 		for (auto &[type, namePathPair] : builder.textureBindings) {
-			ref_renderer->UpdateMaterialTexture(matID, type, GetTextureHandle(namePathPair.first));
+			ref_renderer->UpdateMaterialTexture(matID, type,
+												GetTextureHandle(MemoryAssetPathKeyGenerator(namePathPair.first)));
 		}
 
-		s_matAssetRegistry[builder.name] = newInfo;
-		s_materialsById[matID]			 = newInfo;
+		s_materialsById[matID] = newInfo;
 	}
 
 	return matID;
 }
 
 ModelAssetInfo *AssetManager::RequestModel(std::string &modelName, const std::filesystem::path &path,
-										   const std::string &shaderName) {
+										   const GUID shaderGuid) {
 	if (modelName.empty()) modelName = path.stem().string();
 	if (ModelAssetInfo *info = GetModelAssetInfo(modelName); info) return info;
 
@@ -375,89 +443,174 @@ ModelAssetInfo *AssetManager::RequestModel(std::string &modelName, const std::fi
 	auto result = Model::Loader::LoadOBJ(path);
 	if (!result.success) return nullptr;
 
-	if (const Graphics::ShaderID shaderID = GetShaderHandle(shaderName); shaderID == Graphics::INVALID_HANDLE) {
+	if (const Graphics::ShaderID shaderID = GetShaderHandle(shaderGuid); !shaderID.IsValid()) {
 		PE_LOG_FATAL("Nor requested shader or default shader not found for model import.");
 		return nullptr;
 	}
 
 	if (!result.materials.empty()) {
 		for (MaterialAssetInfo &matInfo : result.materials)
-			if (RequestMaterial(matInfo.name, matInfo.properties, matInfo.textureBindings, shaderName) ==
-				Graphics::INVALID_HANDLE)
+			if (!RequestMaterial(matInfo.name, matInfo.properties, matInfo.textureBindings, shaderGuid).IsValid())
 				PE_LOG_WARN("Can't load material of model at" + path.string());
 	} else {
-		RequestMaterial(DefaultMaterialName.data(), shaderName);
-		for (auto &[meshAssetName, materialAssetName] : result.modelAssetInfo.subMeshes)
-			materialAssetName = DefaultMaterialName;
+		for (auto &[meshGuid, matGuid] : result.modelAssetInfo.subMeshes) matGuid = DefaultMaterialGuid;
 	}
 	for (auto const &[assetInfo, meshData] : result.meshes) {
-		if (RequestMesh(assetInfo.name, meshData) == Graphics::INVALID_HANDLE)
+		if (!RequestMesh(assetInfo.name, assetInfo.paths, meshData).IsValid())
 			PE_LOG_WARN("Can't load material of model at" + path.string());
 	}
 
-	ModelAssetInfo *newInfo = AllocateAsset(s_modelStore);
+	ModelAssetInfo *newInfo = CreateAssetInfo(AssetType::Model, s_modelStore, s_modelPathToGuidMap, path, modelName);
 	newInfo->name			= modelName;
-	newInfo->type			= AssetType::Model;
-	newInfo->sourcePaths.push_back(path);
+	newInfo->paths.push_back(path);
 	newInfo->subMeshes = result.modelAssetInfo.subMeshes;
-
-	s_modelAssetRegistry[modelName] = newInfo;
 
 	return newInfo;
 }
 
-Graphics::TextureID AssetManager::GetTextureHandle(const std::string &fileName) {
-	if (const auto it = s_texAssetRegistry.find(fileName); it != s_texAssetRegistry.end()) {
-		return it->second->ref_handle;
-	}
-	return Graphics::INVALID_HANDLE;
+GUID AssetManager::GetTextureGUID(const std::string &path) {
+	if (s_texPathToGuidMap.contains(path)) return s_texPathToGuidMap[path];
+	return INVALID_GUID;
 }
 
-Graphics::ShaderID AssetManager::GetShaderHandle(const std::string &fileName) {
-	if (const auto it = s_shaderAssetRegistry.find(fileName); it != s_shaderAssetRegistry.end()) {
-		return it->second->ref_handle;
-	}
-	return Graphics::INVALID_HANDLE;
+GUID AssetManager::GetShaderGUID(const std::string &path) {
+	if (s_shaderPathToGuidMap.contains(path)) return s_shaderPathToGuidMap[path];
+	return INVALID_GUID;
 }
 
-Graphics::MaterialID AssetManager::GetMaterialHandle(const std::string &fileName) {
-	if (const auto it = s_matAssetRegistry.find(fileName); it != s_matAssetRegistry.end()) {
-		return it->second->ref_handle;
-	}
-	return Graphics::INVALID_HANDLE;
+GUID AssetManager::GetMaterialGUID(const std::string &path) {
+	if (s_matPathToGuidMap.contains(path)) return s_matPathToGuidMap[path];
+	return INVALID_GUID;
 }
 
-Graphics::MeshID AssetManager::GetMeshHandle(const std::string &fileName) {
-	if (const auto it = s_meshAssetRegistry.find(fileName); it != s_meshAssetRegistry.end()) {
-		return it->second->ref_handle;
-	}
-	return Graphics::INVALID_HANDLE;
+GUID AssetManager::GetMeshGUID(const std::string &path) {
+	if (s_meshPathToGuidMap.contains(path)) return s_meshPathToGuidMap[path];
+	return INVALID_GUID;
 }
 
-ModelAssetInfo *AssetManager::GetModelAssetInfo(const std::string &fileName) {
-	if (const auto it = s_modelAssetRegistry.find(fileName); it != s_modelAssetRegistry.end()) {
-		return it->second;
-	}
+GUID AssetManager::GetModelGUID(const std::string &path) {
+	if (s_modelPathToGuidMap.contains(path)) return s_modelPathToGuidMap[path];
+	return INVALID_GUID;
+}
+
+Graphics::TextureID AssetManager::GetTextureHandle(const GUID guid) {
+	if (s_texGuidToAssetMap.contains(guid) && s_texGuidToAssetMap[guid]->IsLoaded()) return std::get<Graphics::TextureID>(s_texGuidToAssetMap[guid]->ref_handle);
+	return {};
+}
+
+Graphics::ShaderID AssetManager::GetShaderHandle(const GUID guid) {
+	if (s_shaderGuidToAssetMap.contains(guid) && s_shaderGuidToAssetMap[guid]->IsLoaded()) return std::get<Graphics::ShaderID>(s_shaderGuidToAssetMap[guid]->ref_handle);
+	return {};
+}
+
+Graphics::MaterialID AssetManager::GetMaterialHandle(const GUID guid) {
+	if (s_matGuidToAssetMap.contains(guid) && s_matGuidToAssetMap[guid]->IsLoaded()) return std::get<Graphics::MaterialID>(s_matGuidToAssetMap[guid]->ref_handle);
+	return {};
+}
+
+Graphics::MeshID AssetManager::GetMeshHandle(const GUID guid) {
+	if (s_meshGuidToAssetMap.contains(guid) && s_meshGuidToAssetMap[guid]->IsLoaded()) return std::get<Graphics::MeshID>(s_meshGuidToAssetMap[guid]->ref_handle);
+	return {};
+}
+
+TextureAssetInfo * AssetManager::GetTextureAssetInfo(const GUID guid) {
+	if (s_texGuidToAssetMap.contains(guid)) return s_texGuidToAssetMap[guid];
+	return nullptr;
+}
+
+ShaderAssetInfo * AssetManager::GetShaderAssetInfo(const GUID guid) {
+	if (s_shaderGuidToAssetMap.contains(guid)) return s_shaderGuidToAssetMap[guid];
+	return nullptr;
+}
+
+MaterialAssetInfo * AssetManager::GetMaterialAssetInfo(const GUID guid) {
+	if (s_matGuidToAssetMap.contains(guid)) return s_matGuidToAssetMap[guid];
+	return nullptr;
+}
+
+MeshAssetInfo * AssetManager::GetMeshAssetInfo(const GUID guid) {
+	if (s_meshGuidToAssetMap.contains(guid)) return s_meshGuidToAssetMap[guid];
+	return nullptr;
+}
+
+ModelAssetInfo *AssetManager::GetModelAssetInfo(const GUID guid) {
+	if (s_modelGuidToAssetMap.contains(guid)) return s_modelGuidToAssetMap[guid];
 	return nullptr;
 }
 
 void AssetManager::ReserveMemory(size_t textureCount, size_t meshCount, size_t materialCount, size_t modelCount,
 								 size_t shaderCount) {
-	s_textureStore.reserve(textureCount);
-	s_meshStore.reserve(meshCount);
-	s_materialStore.reserve(materialCount);
-	s_shaderStore.reserve(shaderCount);
-	s_modelStore.reserve(modelCount);
-	PE_LOG_INFO("Asset Memory Reserved.");
+	// TODO: No need now. Change after hot-reload implementation
+	// s_textureStore.reserve(textureCount);
+	// s_meshStore.reserve(meshCount);
+	// s_materialStore.reserve(materialCount);
+	// s_shaderStore.reserve(shaderCount);
+	// s_modelStore.reserve(modelCount);
+	// PE_LOG_INFO("Asset Memory Reserved.");
 }
 
 template <typename T>
-T *AssetManager::AllocateAsset(std::vector<T> &store) {
-	if (store.size() >= store.capacity()) {
-		PE_LOG_WARN("AssetStore capacity exceeded!");
+T *AssetManager::CreateAssetInfoForMemoryAsset(const AssetType type, std::deque<T> &store, std::unordered_map<std::string, GUID> &pathToGuidMap,
+									 std::unordered_map<GUID, T *> &guidToAssetMap, std::string_view name) {
+	const std::string pathKey = MemoryAssetPathKeyGenerator(name);
+
+	if (pathToGuidMap.contains(pathKey)) {
+		PE_LOG_ERROR(std::format("Asset collision! Path already loaded for: {}", name));
+		return nullptr;
 	}
-	store.emplace_back();
-	return &store.back();
+
+	T *asset	= &store.emplace_back();
+	asset->type = type;
+	asset->guid = GUID::Generate();
+	asset->name = name;
+
+	pathToGuidMap[pathKey]		= asset->guid;
+	guidToAssetMap[asset->guid] = asset;
+
+	return asset;
+}
+
+template <typename T>
+T *AssetManager::CreateAssetInfo(const AssetType type, std::deque<T> &store, std::unordered_map<std::string, GUID> &pathToGuidMap, const std::filesystem::path &path,
+							   std::string_view name) {
+	const std::string pathKey = PathKeyGenerator(path);
+
+	if (pathToGuidMap.contains(pathKey)) {
+		PE_LOG_ERROR(std::format("Asset collision! Path already loaded for: {}", name));
+		return nullptr;
+	}
+
+	T *asset	= &store.emplace_back();
+	asset->type = type;
+	asset->guid = GUID::Generate();
+	asset->name = name;
+
+	asset->paths.push_back(path);
+	pathToGuidMap[pathKey]		= asset->guid;
+
+	return asset;
+}
+
+template <typename T>
+T *AssetManager::CreateAssetInfo(const AssetType type, std::deque<T> &store, std::unordered_map<std::string, GUID> &pathToGuidMap,
+							   std::span<const std::filesystem::path> paths, std::string_view name) {
+	const std::string pathKey = PathKeyGenerator(paths);
+
+	if (pathToGuidMap.contains(pathKey)) {
+		PE_LOG_ERROR(std::format("Asset collision! Path already loaded for: {}", name));
+		return nullptr;
+	}
+
+	T *asset	= &store.emplace_back();
+	asset->type = type;
+	asset->guid = GUID::Generate();
+	asset->name = name;
+
+	asset->paths.assign(paths.begin(), paths.end());
+
+	pathToGuidMap[pathKey]		= asset->guid;
+
+	return asset;
 }
 
 void AssetManager::CreateDefaultRenderAssets() {
@@ -474,16 +627,13 @@ void AssetManager::CreateDefaultTextures() {
 	const Graphics::TextureID errorId =
 		ref_renderer->CreateTexture(errorTextureName, Texture::Generator::GetDefaultError().data(), errorTextureParams);
 
-	if (errorId != Graphics::INVALID_HANDLE) {
-		TextureAssetInfo *newInfo = AllocateAsset(s_textureStore);
-		newInfo->name			  = errorTextureName;
-
-		newInfo->type		= AssetType::Texture;
-		newInfo->ref_handle = errorId;
-		newInfo->params		= errorTextureParams;
-
-		s_texAssetRegistry[errorTextureName] = newInfo;
-		s_texturesById[errorId]				 = newInfo;
+	if (errorId.IsValid()) {
+		TextureAssetInfo *newInfo =
+			CreateAssetInfoForMemoryAsset(AssetType::Texture, s_textureStore, s_texPathToGuidMap, s_texGuidToAssetMap, errorTextureName);
+		newInfo->ref_handle		= errorId;
+		newInfo->params			= errorTextureParams;
+		s_texturesById[errorId] = newInfo;
+		ErrorTextureGuid		= newInfo->guid;
 	}
 
 	constexpr int texTypeCount = static_cast<int>(Graphics::TextureType::Count);
@@ -495,42 +645,51 @@ void AssetManager::CreateDefaultTextures() {
 		const Graphics::TextureID	id =
 			ref_renderer->CreateTexture(name, Texture::Generator::GetDefaultTexture(type).data(), params);
 
-		if (id != Graphics::INVALID_HANDLE) {
-			TextureAssetInfo *newInfo = AllocateAsset(s_textureStore);
-			newInfo->name			  = name;
-
-			newInfo->type		= AssetType::Texture;
+		if (id.IsValid()) {
+			TextureAssetInfo *newInfo =
+				CreateAssetInfoForMemoryAsset(AssetType::Texture, s_textureStore, s_texPathToGuidMap, s_texGuidToAssetMap, name);
+			newInfo->name = name;
 			newInfo->ref_handle = id;
 			newInfo->params		= params;
-
-			s_defaultTextureNames.push_back(name);
-			s_texAssetRegistry[name] = newInfo;
-			s_texturesById[id]		 = newInfo;
+			s_defaultTextureGUIDs.push_back(newInfo->guid);
+			s_texturesById[id] = newInfo;
 		}
 	}
 }
 
 void AssetManager::CreateDefaultShaders() {
-	ErrorShaderID = RequestShader(ErrorShaderName.data(), Graphics::ShaderType::Unlit, DefaultUnlitShaderVSPath,
-								  DefaultUnlitShaderPSPath);
+	ErrorShaderID =
+		RequestShader(ErrorShaderName, Graphics::ShaderType::Unlit, DefaultUnlitShaderVSPath, DefaultUnlitShaderPSPath);
+	ErrorShaderGuid = s_shadersById[ErrorShaderID]->guid;
+
 	DefaultShaderID =
-		RequestShader(DefaultShaderName.data(), Graphics::ShaderType::Lit, DefaultShaderVSPath, DefaultShaderPSPath);
-	DefaultUnlitShaderID	= RequestShader(DefaultUnlitShaderName.data(), Graphics::ShaderType::Unlit,
-											DefaultUnlitShaderVSPath, DefaultUnlitShaderPSPath);
-	DefaultShadowShaderID	= RequestShader(DefaultShadowShaderName.data(), Graphics::ShaderType::Shadow,
+		RequestShader(DefaultShaderName, Graphics::ShaderType::Lit, DefaultShaderVSPath, DefaultShaderPSPath);
+	DefaultShaderGuid = s_shadersById[DefaultShaderID]->guid;
+
+	DefaultUnlitShaderID = RequestShader(DefaultUnlitShaderName, Graphics::ShaderType::Unlit, DefaultUnlitShaderVSPath,
+										 DefaultUnlitShaderPSPath);
+	DefaultUnlitShaderGuid = s_shadersById[DefaultUnlitShaderID]->guid;
+
+	DefaultShadowShaderID	= RequestShader(DefaultShadowShaderName, Graphics::ShaderType::Shadow,
 											DefaultShadowShaderVSPath, DefaultShadowShaderPSPath);
-	DefaultParticleShaderID = RequestShader(DefaultParticleShaderName.data(), Graphics::ShaderType::Particle,
-											DefaultParticleShaderVSPath, DefaultParticleShaderPSPath);
+	DefaultShadowShaderGuid = s_shadersById[DefaultShadowShaderID]->guid;
+
+	DefaultParticleShaderID	  = RequestShader(DefaultParticleShaderName, Graphics::ShaderType::Particle,
+											  DefaultParticleShaderVSPath, DefaultParticleShaderPSPath);
+	DefaultParticleShaderGuid = s_shadersById[DefaultParticleShaderID]->guid;
 }
 
 void AssetManager::CreateDefaultMaterials() {
-	ErrorMaterialID	  = RequestMaterial(ErrorMaterialName.data(), ErrorShaderName);
-	DefaultMaterialID = RequestMaterial(DefaultMaterialName.data(), DefaultShaderName);
+	ErrorMaterialID		= RequestMaterial(ErrorMaterialName, ErrorShaderGuid);
+	ErrorMaterialGuid	= s_materialsById[ErrorMaterialID]->guid;
+	DefaultMaterialID	= RequestMaterial(DefaultMaterialName, DefaultShaderGuid);
+	DefaultMaterialGuid = s_materialsById[DefaultMaterialID]->guid;
 }
 
 void AssetManager::CreateDefaultMeshes() {
 	Graphics::MeshData meshData;
 	Graphics::GeometryGenerator::CreateQuad(1.0, 1.0, meshData);
-	DefaultQuadID = RequestMesh(DefaultQuadName.data(), meshData);
+	DefaultQuadID	= RequestMesh(DefaultQuadName, meshData);
+	DefaultQuadGuid = s_meshesById[DefaultQuadID]->guid;
 }
 }  // namespace PE::Assets

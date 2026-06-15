@@ -43,9 +43,7 @@ namespace PE::Utilities {
 #define PE_CHECK(var, expr)                                                                                            \
 	do {                                                                                                               \
 		(var) = (expr);                                                                                                \
-		if ((var) < PE::ERROR_CODE::WARN_START) {                                                                      \
-			return (var);                                                                                              \
-		}                                                                                                              \
+		if ((var) < PE::ERROR_CODE::WARN_START) { return (var); }                                                      \
 	} while (0)
 
 #define PE_CHECK_ALREADY_INIT(flag, msg)                                                                               \

@@ -59,7 +59,7 @@ public:
 	void	   UpdateGlobalBuffer(const CBPerPass &data) override;
 	ERROR_CODE UpdateMaterialTexture(MaterialID matID, TextureType typeIdx, TextureID texID) override;
 	// TODO: Combine this and the UpdateMaterialBuffer in D3d11Shader and convert it to a single API.
-	ERROR_CODE UpdateMaterial(uint32_t matID) override {
+	ERROR_CODE UpdateMaterial(MaterialID matID) override {
 		PE_LOG_FATAL("Not implemented");
 		return ERROR_CODE::NOT_IMPLEMENTED;
 	}

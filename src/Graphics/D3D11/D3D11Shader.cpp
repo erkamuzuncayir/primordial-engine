@@ -121,9 +121,7 @@ void D3D11Shader::Bind(ID3D11DeviceContext *context) {
 	context->VSSetShader(m_vertexShader, nullptr, 0);
 	context->PSSetShader(m_pixelShader, nullptr, 0);
 
-	if (m_materialBuffer) {
-		context->PSSetConstantBuffers(2, 1, &m_materialBuffer);
-	}
+	if (m_materialBuffer) { context->PSSetConstantBuffers(2, 1, &m_materialBuffer); }
 }
 
 void D3D11Shader::UpdateMaterialBuffer(const ShaderType type, ID3D11DeviceContext *context, const void *data) {

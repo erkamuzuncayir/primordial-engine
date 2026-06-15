@@ -59,13 +59,9 @@ std::string Logger::FormatMessage(LogLevel level, const std::string &msg, const 
 
 	std::tm tm;
 #if defined(_WIN32)
-	if (localtime_s(&tm, &t) != 0) {
-		std::memset(&tm, 0, sizeof(std::tm));
-	}
+	if (localtime_s(&tm, &t) != 0) { std::memset(&tm, 0, sizeof(std::tm)); }
 #else
-	if (localtime_r(&t, &tm) == nullptr) {
-		std::memset(&tm, 0, sizeof(std::tm));
-	}
+	if (localtime_r(&t, &tm) == nullptr) { std::memset(&tm, 0, sizeof(std::tm)); }
 #endif
 
 	std::ostringstream oss;
@@ -95,13 +91,9 @@ std::string Logger::CurrentTimestampString() {
 
 	std::tm tm;
 #if defined(_WIN32)
-	if (localtime_s(&tm, &t) != 0) {
-		std::memset(&tm, 0, sizeof(std::tm));
-	}
+	if (localtime_s(&tm, &t) != 0) { std::memset(&tm, 0, sizeof(std::tm)); }
 #else
-	if (localtime_r(&t, &tm) == nullptr) {
-		std::memset(&tm, 0, sizeof(std::tm));
-	}
+	if (localtime_r(&t, &tm) == nullptr) { std::memset(&tm, 0, sizeof(std::tm)); }
 #endif
 
 	std::ostringstream oss;
@@ -130,9 +122,7 @@ void Logger::Log(LogLevel level, const std::string &message, const char *file, i
 }
 
 bool Logger::RotateAtInitialize() {
-	if (s_maxFiles <= 1) {
-		return true;
-	}
+	if (s_maxFiles <= 1) { return true; }
 
 	std::error_code ec;
 	fs::path		base = s_logFilePath;

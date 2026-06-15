@@ -49,7 +49,7 @@ public:
 
 	virtual void	   UpdateGlobalBuffer(const CBPerPass &data)									 = 0;
 	virtual ERROR_CODE UpdateMaterialTexture(MaterialID matID, TextureType typeIdx, TextureID texID) = 0;
-	virtual ERROR_CODE UpdateMaterial(uint32_t matID)												 = 0;
+	virtual ERROR_CODE UpdateMaterial(MaterialID matID)												 = 0;
 
 	virtual RenderTargetID CreateRenderTarget(int width, int height, int format)								  = 0;
 	virtual void		   SetRenderTargets(std::span<const RenderTargetID> targets, RenderTargetID depthStencil) = 0;

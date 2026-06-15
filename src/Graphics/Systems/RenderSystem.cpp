@@ -60,9 +60,7 @@ void RenderSystem::OnUpdate(float dt) {
 
 	if (auto &dncArr = ref_eM->GetCompArr<Scene::Components::DayNightCycle>(); dncArr.GetCount() > 0) {
 		activeLightID = dncArr.Data()[0].activeLightEntity;
-		if (activeLightID != ECS::INVALID_ENTITY_ID) {
-			isDayNightLight = true;
-		}
+		if (activeLightID != ECS::INVALID_ENTITY_ID) { isDayNightLight = true; }
 	}
 
 	if (activeLightID == ECS::INVALID_ENTITY_ID) {

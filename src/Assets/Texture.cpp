@@ -2,6 +2,7 @@
 #include <stb_image.h>
 
 #include <filesystem>
+#include <span>
 #include <vector>
 
 #ifdef PE_D3D11
@@ -76,7 +77,7 @@ bool Load(const std::filesystem::path &path, Graphics::Texture &texture) {
 	return true;
 }
 
-bool LoadCubemap(const std::vector<std::filesystem::path> &paths, Graphics::Texture &texture) {
+bool LoadCubemap(std::span<const std::filesystem::path> paths, Graphics::Texture &texture) {
 	if (paths.size() != 6) {
 		PE_LOG_ERROR("Cubemap loading requires exactly 6 file paths.");
 		return false;

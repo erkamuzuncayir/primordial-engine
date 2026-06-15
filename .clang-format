@@ -25,6 +25,7 @@ SpaceBeforeParens: ControlStatements
 SpaceAfterCStyleCast: false
 SpaceBeforeAssignmentOperators: true
 SpaceInEmptyParentheses: false
+SpaceInEmptyBraces: Never
 SpacesInParentheses: false
 
 # Short blocks and lines
@@ -33,6 +34,7 @@ SortIncludes: true
 IndentCaseLabels: true
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
+AllowShortBlocksOnASingleLine: Always
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLoopsOnASingleLine: true
 

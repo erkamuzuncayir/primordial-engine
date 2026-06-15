@@ -24,7 +24,7 @@ public:
 
 	// Initialize with maximum number of entities and component types
 	ERROR_CODE Initialize(const Core::EngineConfig &config);
-	void	   Update(float dt);
+	void	   Update(float dt) const;
 	ERROR_CODE Shutdown();
 
 	// Entity lifecycle
@@ -59,7 +59,12 @@ public:
 private:
 	SystemState				  m_state	 = SystemState::Uninitialized;
 	const Core::EngineConfig *ref_config = nullptr;
-	std::stack<EntityID>	  m_freeEntities;  // recycled IDs
+
+	// The stack holds only pure index numbers to be recycled!
+	std::stack<EntityIndex> m_freeEntities;
+
+	// Array holding the current generation number of each index
+	std::vector<EntityGeneration> m_entityGenerations;
 
 	// Flat mapping: [typeID * ref_config->maxEntityCount + entityID] -> componentIndex or UINT32_MAX
 	std::vector<uint32_t>						  m_allComponentIndices;

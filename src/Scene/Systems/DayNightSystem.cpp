@@ -172,13 +172,9 @@ void DayNightSystem::UpdateEnvironmentalEffects(Components::DayNightCycle &cycle
 				float currentScale = transform->scale.x;
 
 				if (isPrecipitating) {
-					if (currentScale < 1.5f) {
-						currentScale += growthSpeed;
-					}
+					if (currentScale < 1.5f) { currentScale += growthSpeed; }
 				} else if (isDay) {
-					if (currentScale > 0.5f) {
-						currentScale -= growthSpeed * 0.5f;
-					}
+					if (currentScale > 0.5f) { currentScale -= growthSpeed * 0.5f; }
 				}
 
 				transform->scale = Math::Vec3(currentScale);

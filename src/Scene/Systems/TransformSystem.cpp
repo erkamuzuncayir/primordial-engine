@@ -207,17 +207,13 @@ void TransformSystem::RebuildTransformArray() {
 	sortedEntities.clear();
 	sortedEntities.reserve(count);
 
-	for (uint32_t rootID : roots) {
-		DFSRebuild(rootID, UINT32_MAX, adj, sortedData, sortedEntities);
-	}
+	for (uint32_t rootID : roots) { DFSRebuild(rootID, UINT32_MAX, adj, sortedData, sortedEntities); }
 
 	array.Shutdown();
 
 	array.Initialize(ref_config->maxEntityCount);
 
-	for (size_t i = 0; i < sortedData.size(); ++i) {
-		array.Add(sortedEntities[i], &sortedData[i]);
-	}
+	for (size_t i = 0; i < sortedData.size(); ++i) { array.Add(sortedEntities[i], &sortedData[i]); }
 
 	m_lastComponentCount = array.GetCount();
 }

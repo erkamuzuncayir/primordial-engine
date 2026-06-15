@@ -13,8 +13,11 @@ ERROR_CODE ECSManager::Initialize(const Core::EngineConfig &config) {
 	m_componentArrays.clear();
 	m_componentArrays.resize(ref_config->maxComponentTypeCount);
 
+	m_entityGenerations.assign(ref_config->maxEntityCount, 1);
+
 	while (!m_freeEntities.empty()) m_freeEntities.pop();
-	for (EntityID i = 0; i < ref_config->maxEntityCount; ++i) m_freeEntities.push(ref_config->maxEntityCount - 1 - i);
+	for (EntityIndex i = 0; i < ref_config->maxEntityCount; ++i)
+		m_freeEntities.push(ref_config->maxEntityCount - 1 - i);
 
 	ERROR_CODE result = ERROR_CODE::OK;
 	PE_CHECK(result, Scene::EntityFactory::Initialize(this));
@@ -23,7 +26,7 @@ ERROR_CODE ECSManager::Initialize(const Core::EngineConfig &config) {
 	return result;
 }
 
-void ECSManager::Update(const float dt) {
+void ECSManager::Update(const float dt) const {
 	for (auto const &stageVec : m_systems)
 		for (auto &sys : stageVec) sys->OnUpdate(dt);
 }
@@ -47,33 +50,43 @@ ERROR_CODE ECSManager::Shutdown() {
 EntityID ECSManager::CreateEntity() {
 	if (m_freeEntities.empty()) {
 		PE_LOG_ERROR("There isn't any free entity.");
-		return UINT32_MAX;
+		return INVALID_ENTITY_ID;
 	}
 
-	const auto id = m_freeEntities.top();
+	const auto index = m_freeEntities.top();
 	m_freeEntities.pop();
 
 	for (uint32_t typeID = 0; typeID < ref_config->maxComponentTypeCount; ++typeID)
-		m_allComponentIndices[typeID * ref_config->maxEntityCount + id] = UINT32_MAX;
+		m_allComponentIndices[typeID * ref_config->maxEntityCount + index] = INVALID_ENTITY_ID;
 
-	return id;
+	return CreateEntityID(index, m_entityGenerations[index]);
 }
 
-ERROR_CODE ECSManager::DestroyEntity(EntityID id) {
-	if (id >= ref_config->maxEntityCount) {
-		PE_LOG_FATAL("Entity ID isn't correct.");
+ERROR_CODE ECSManager::DestroyEntity(const EntityID id) {
+	const uint32_t index	  = GetEntityIndex(id);
+	const uint32_t generation = GetEntityGeneration(id);
+
+	if (index >= ref_config->maxEntityCount) {
+		PE_LOG_FATAL("Entity ID index isn't correct.");
+		return ERROR_CODE::WRONG_ENTITY_ID;
+	}
+
+	if (m_entityGenerations[index] != generation) {
+		PE_LOG_WARN("Attempted to destroy an already destroyed stale entity reference.");
 		return ERROR_CODE::WRONG_ENTITY_ID;
 	}
 
 	for (uint32_t typeID = 0; typeID < ref_config->maxComponentTypeCount; ++typeID) {
-		if (const uint32_t idx = m_allComponentIndices[typeID * ref_config->maxEntityCount + id];
-			idx != UINT32_MAX && m_componentArrays[typeID]->Has(idx)) {
-			m_componentArrays[typeID]->Remove(idx);
-			m_allComponentIndices[typeID * ref_config->maxEntityCount + id] = UINT32_MAX;
+		if (const uint32_t idx = m_allComponentIndices[typeID * ref_config->maxEntityCount + index];
+			idx != UINT32_MAX && m_componentArrays[typeID]->Has(id)) {
+			m_componentArrays[typeID]->Remove(id);
+			m_allComponentIndices[typeID * ref_config->maxEntityCount + index] = UINT32_MAX;
 		}
 	}
 
-	m_freeEntities.push(id);
+	m_entityGenerations[index] = (m_entityGenerations[index] + 1) & (ENTITY_GENERATION_MASK >> ENTITY_INDEX_BITS);
+
+	m_freeEntities.push(index);
 	return ERROR_CODE::OK;
 }
 
@@ -81,9 +94,7 @@ void ECSManager::ClearAllEntities() {
 	PE_LOG_INFO("ECSManager: Clearing all entities and components...");
 
 	for (uint32_t typeID = 0; typeID < ref_config->maxComponentTypeCount; ++typeID) {
-		if (m_componentArrays[typeID]) {
-			m_componentArrays[typeID]->Clear();
-		}
+		if (m_componentArrays[typeID]) { m_componentArrays[typeID]->Clear(); }
 	}
 
 	std::fill(m_allComponentIndices.begin(), m_allComponentIndices.end(), UINT32_MAX);
@@ -93,6 +104,7 @@ void ECSManager::ClearAllEntities() {
 	for (EntityID i = 0; i < ref_config->maxEntityCount; ++i) {
 		m_freeEntities.push(ref_config->maxEntityCount - 1 - i);
 	}
+	m_entityGenerations.assign(ref_config->maxEntityCount, 1);
 
 	PE_LOG_INFO("ECSManager: All entities cleared.");
 }

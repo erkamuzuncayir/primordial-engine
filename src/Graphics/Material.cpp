@@ -15,10 +15,10 @@ Material::Material(Material &&other) noexcept
 	  m_propertyBuffer(std::move(other.m_propertyBuffer)),
 	  m_layout(other.m_layout) {
 	other.ref_renderer	= nullptr;
-	other.m_id			= INVALID_HANDLE;
-	other.m_shaderID	= INVALID_HANDLE;
+	other.m_id			= MaterialID{};
+	other.m_shaderID	= ShaderID{};
 	other.m_sortKeyMask = 0;
-	other.m_textures.fill(INVALID_HANDLE);
+	other.m_textures.fill({});
 }
 
 Material &Material::operator=(Material &&other) noexcept {
@@ -34,23 +34,23 @@ Material &Material::operator=(Material &&other) noexcept {
 		m_layout		 = other.m_layout;
 
 		other.ref_renderer	= nullptr;
-		other.m_id			= INVALID_HANDLE;
-		other.m_shaderID	= INVALID_HANDLE;
+		other.m_id			= MaterialID{};
+		other.m_shaderID	= ShaderID{};
 		other.m_sortKeyMask = 0;
-		other.m_textures.fill(INVALID_HANDLE);
+		other.m_textures.fill({});
 		other.m_layout.fill({});
 	}
 	return *this;
 }
 
 ERROR_CODE Material::Initialize(
-	IRenderer *renderer, const uint32_t id, const ShaderID shaderID, const uint32_t bufferSize,
+	IRenderer *renderer, const MaterialID id, const ShaderID shaderID, const uint32_t bufferSize,
 	const std::array<MaterialPropertyLayout, static_cast<size_t>(MaterialProperty::Count)> &layout) {
 	ref_renderer = renderer;
 	m_id		 = id;
 	m_shaderID	 = shaderID;
 
-	m_textures.fill(INVALID_HANDLE);
+	m_textures.fill({});
 	m_layout.fill({0, 0});
 	m_samplers.fill(SamplerType::LinearRepeat);
 
@@ -60,18 +60,18 @@ ERROR_CODE Material::Initialize(
 	m_layout = layout;
 
 	uint64_t layer = 1;
-	m_sortKeyMask = RenderKey::Create(static_cast<uint8_t>(static_cast<RenderPass>(0)), static_cast<uint16_t>(shaderID),
-									  static_cast<uint16_t>(id), 0);
+	m_sortKeyMask = RenderKey::Create(static_cast<uint8_t>(static_cast<RenderPass>(0)), shaderID,
+									  id, 0);
 
 	return ERROR_CODE::OK;
 }
 
 void Material::Shutdown() {
-	m_id		  = INVALID_HANDLE;
-	m_shaderID	  = INVALID_HANDLE;
+	m_id		  = {};
+	m_shaderID	  = {};
 	m_sortKeyMask = 0;
 	m_propertyBuffer.clear();
-	m_textures.fill(INVALID_HANDLE);
+	m_textures.fill({});
 	m_layout.fill({0, 0});
 }
 
@@ -100,15 +100,11 @@ const std::vector<uint8_t> &Material::GetPropertyData() const { return m_propert
 void Material::SetPropertyInternal(MaterialProperty prop, const void *data, const size_t size) {
 	size_t index = static_cast<size_t>(prop);
 
-	if (index >= m_layout.size()) {
-		return;
-	}
+	if (index >= m_layout.size()) { return; }
 
 	const auto &propLayout = m_layout[index];
 
-	if (propLayout.size == 0) {
-		return;
-	}
+	if (propLayout.size == 0) { return; }
 
 	if (propLayout.size != size) {
 		PE_LOG_ERROR("Material Property Size Mismatch");

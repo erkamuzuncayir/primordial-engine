@@ -18,8 +18,8 @@ public:
 	Material &operator=(Material &&other) noexcept;
 	~Material() = default;
 
-	ERROR_CODE Initialize(IRenderer *renderer, uint32_t id, ShaderID shaderID, uint32_t bufferSize,
-						  const std::array<MaterialPropertyLayout, 19> &layout);
+	ERROR_CODE Initialize(IRenderer *renderer, MaterialID id, ShaderID shaderID, uint32_t bufferSize,
+	                      const std::array<MaterialPropertyLayout, 19> &layout);
 	void	   Shutdown();
 
 	void SetTexture(TextureType type, TextureID textureID);
@@ -38,8 +38,8 @@ private:
 
 	IRenderer *ref_renderer = nullptr;
 
-	uint32_t m_id		   = INVALID_HANDLE;
-	ShaderID m_shaderID	   = INVALID_HANDLE;
+	MaterialID m_id;
+	ShaderID m_shaderID;
 	uint64_t m_sortKeyMask = 0;
 
 	std::array<TextureID, static_cast<size_t>(TextureType::Count)>					 m_textures{};

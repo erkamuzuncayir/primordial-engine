@@ -20,9 +20,7 @@ HRESULT_T LogOnFailedHR(const HRESULT_T hr, const Utilities::LogLevel logLevel, 
 		std::ostringstream oss;
 		oss << msg.data() << "\nHR: 0x" << std::hex << hr;
 
-		if (wErrMsg) {
-			oss << " (" << Internal_WstringToUtf8(wErrMsg) << ")";
-		}
+		if (wErrMsg) { oss << " (" << Internal_WstringToUtf8(wErrMsg) << ")"; }
 
 		const std::string finalMsg = oss.str();
 

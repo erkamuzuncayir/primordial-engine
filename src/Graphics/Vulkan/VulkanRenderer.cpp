@@ -99,9 +99,7 @@ ERROR_CODE VulkanRenderer::Shutdown() {
 	if (m_shadowMap.texture.image) vkDestroyImage(device, m_shadowMap.texture.image, nullptr);
 	if (m_shadowMap.texture.memory) vkFreeMemory(device, m_shadowMap.texture.memory, nullptr);
 
-	for (auto &[desc, pipeline] : m_pipelineDescriptions) {
-		Utilities::SafeShutdown(pipeline);
-	}
+	for (auto &[desc, pipeline] : m_pipelineDescriptions) { Utilities::SafeShutdown(pipeline); }
 	m_pipelineDescriptions.clear();
 	Utilities::SafeShutdown(m_particlePipeline);
 	Utilities::SafeShutdown(m_shadowPipeline);
@@ -200,9 +198,7 @@ ERROR_CODE VulkanRenderer::InitializeGUI() {
 
 		PE_LOG_FATAL("ImGui Vulkan Error: VkResult = " + std::to_string(err));
 
-		if (err < 0) {
-			abort();
-		}
+		if (err < 0) { abort(); }
 	};
 
 	VkPipelineRenderingCreateInfo imguiPipelineInfo{VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
@@ -246,9 +242,7 @@ void VulkanRenderer::SubmitParticles(TextureID texture, const std::vector<Graphi
 	batch.textureID = texture;
 	batch.instances.reserve(particles.size());
 
-	for (const auto &p : particles) {
-		batch.instances.push_back({p.position, p.color, p.size});
-	}
+	for (const auto &p : particles) { batch.instances.push_back({p.position, p.color, p.size}); }
 
 	m_particleBatches.push_back(std::move(batch));
 }
@@ -277,9 +271,7 @@ void VulkanRenderer::Flush() {
 	vkResetCommandBuffer(cmd, 0);
 
 	ERROR_CODE result = RecordCommandBuffer(imageIndex, cmd);
-	if (result < ERROR_CODE::WARN_START) {
-		return;
-	}
+	if (result < ERROR_CODE::WARN_START) { return; }
 
 	VkSemaphore			 waitSem[]	  = {m_imageAvailableSemaphores[m_currentFrame]};
 	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -339,7 +331,7 @@ void VulkanRenderer::FlushParticles(VkCommandBuffer cmd) {
 			texSet = it->second;
 		} else {
 			if (!m_textures.Has(batch.textureID)) {
-				PE_LOG_ERROR("Particle texture not found: " + std::to_string(batch.textureID));
+				PE_LOG_ERROR("Particle texture not found: " + std::to_string(batch.textureID.value));
 				continue;
 			}
 
@@ -554,7 +546,7 @@ ERROR_CODE VulkanRenderer::RecordCommandBuffer(uint32_t imageIndex, VkCommandBuf
 		VkRect2D scissor = {.offset = {.x = 0, .y = 0}, .extent = vkExtent2D};
 		vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-		MaterialID lastMaterialID = INVALID_HANDLE;
+		MaterialID lastMaterialID{};
 
 		for (size_t i = 0; i < m_renderQueue.size(); i++) {
 			const auto &item = m_renderQueue[i];
@@ -616,7 +608,7 @@ ERROR_CODE VulkanRenderer::RecordCommandBuffer(uint32_t imageIndex, VkCommandBuf
 
 				if (item.materialID != lastMaterialID) {
 					vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,
-											&m_materialDescriptorSets[item.materialID], 0, nullptr);
+											&m_materialDescriptorSets[item.materialID.value], 0, nullptr);
 					lastMaterialID = item.materialID;
 				}
 
@@ -671,9 +663,7 @@ void VulkanRenderer::UpdateGlobalBuffer(const CBPerPass &data) {
 	Math::Vec3 target = Math::Vec3Zero;
 
 	auto up = Math::Vec3(0.0f, 1.0f, 0.0f);
-	if (Math::Abs(lightDir.y) > 0.99f) {
-		up = Math::Vec3(0.0f, 0.0f, 1.0f);
-	}
+	if (Math::Abs(lightDir.y) > 0.99f) { up = Math::Vec3(0.0f, 0.0f, 1.0f); }
 
 	Math::Mat44 lightView = Math::Mat4LookAt(lightPos, target, up);
 	float		orthoSize = 100.0f;
@@ -716,20 +706,22 @@ void VulkanRenderer::UpdateUniformBuffer(uint32_t currentFrame) {
 	}
 }
 
-ERROR_CODE VulkanRenderer::UpdateMaterialTexture(MaterialID matID, TextureType typeIdx, TextureID texID) {
-	if (matID >= m_materialDescriptorSets.size()) {
+ERROR_CODE VulkanRenderer::UpdateMaterialTexture(const MaterialID matID, TextureType typeIdx, const TextureID texID) {
+	if (matID.value >= m_materialDescriptorSets.size()) {
 		PE_LOG_ERROR("Invalid Material ID for texture update.");
 		return ERROR_CODE::VULKAN_MATERIAL_UPDATE_FAILED;
 	}
 
-	TextureID validTexID = (texID != INVALID_HANDLE) ? texID : static_cast<TextureID>(typeIdx);
+	TextureID validTexID;
+	if (texID.IsValid())
+		validTexID = texID;
 
 	if (!m_textures.Has(validTexID)) {
-		PE_LOG_WARN("Texture ID " + std::to_string(validTexID) + " not found in pool. Using default.");
-		validTexID = static_cast<TextureID>(typeIdx);
+		PE_LOG_WARN("Texture ID " + std::to_string(validTexID.value) + " not found in pool. Using error texture.");
+		validTexID = Assets::AssetManager::GetErrorTextureID();
 	}
 
-	VulkanTextureWrapper &tex = m_textures.Get(validTexID);
+	const VulkanTextureWrapper &tex = m_textures.Get(validTexID);
 
 	VkDescriptorImageInfo imageInfo{};
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -737,7 +729,7 @@ ERROR_CODE VulkanRenderer::UpdateMaterialTexture(MaterialID matID, TextureType t
 	imageInfo.sampler	  = m_globalSamplers[static_cast<uint8_t>(GetMaterial(matID).GetSampler(typeIdx))];
 
 	VkWriteDescriptorSet texWrite{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
-	texWrite.dstSet			 = m_materialDescriptorSets[matID];
+	texWrite.dstSet			 = m_materialDescriptorSets[matID.value];
 	texWrite.dstBinding		 = static_cast<uint32_t>(typeIdx) + 1;
 	texWrite.dstArrayElement = 0;
 	texWrite.descriptorType	 = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -746,8 +738,8 @@ ERROR_CODE VulkanRenderer::UpdateMaterialTexture(MaterialID matID, TextureType t
 
 	vkUpdateDescriptorSets(ref_device->GetVkDevice(), 1, &texWrite, 0, nullptr);
 
-	PE_LOG_INFO("Updated Material " + std::to_string(matID) + " Texture Type " +
-				std::to_string(static_cast<uint32_t>(typeIdx)) + " to TextureID " + std::to_string(validTexID));
+	PE_LOG_INFO("Updated Material " + std::to_string(matID.value) + " Texture Type " +
+				std::to_string(static_cast<uint32_t>(typeIdx)) + " to TextureID " + std::to_string(validTexID.value));
 	return ERROR_CODE::OK;
 }
 
@@ -757,13 +749,13 @@ ERROR_CODE VulkanRenderer::UpdateMaterial(MaterialID id) {
 		return ERROR_CODE::VULKAN_MATERIAL_UPDATE_FAILED;
 	}
 
-	if (id >= m_perMaterialBuffers.size()) {
+	if (id.value >= m_perMaterialBuffers.size()) {
 		PE_LOG_ERROR("Material Buffer Index out of bounds");
 		return ERROR_CODE::VULKAN_MATERIAL_UPDATE_FAILED;
 	}
 
 	const Material &mat	   = m_materials.Get(id);
-	VulkanBuffer   *buffer = m_perMaterialBuffers[id];
+	VulkanBuffer   *buffer = m_perMaterialBuffers[id.value];
 
 	const std::vector<uint8_t> &rawData = mat.GetPropertyData();
 
@@ -776,19 +768,19 @@ ERROR_CODE VulkanRenderer::UpdateMaterial(MaterialID id) {
 }
 
 // TODO: Not implemented yet.
-RenderTargetID VulkanRenderer::CreateRenderTarget(int w, int h, int f) { return 0; }
+RenderTargetID VulkanRenderer::CreateRenderTarget(int w, int h, int f) { return {}; }
 
 // TODO: Not implemented yet.
-void VulkanRenderer::SetRenderTargets(std::span<const RenderTargetID>(targets), RenderTargetID d) {}
+void VulkanRenderer::SetRenderTargets(std::span<const RenderTargetID>(targets), RenderTargetID depthStencil) {}
 
 // TODO: Not implemented yet.
-void VulkanRenderer::ClearRenderTarget(RenderTargetID id, const float c[4]) {}
+void VulkanRenderer::ClearRenderTarget(RenderTargetID id, const float color[4]) {}
 
 // TODO: Not implemented yet.
 void VulkanRenderer::ClearDepth(RenderTargetID id) {}
 
 // TODO: Not implemented yet.
-TextureID VulkanRenderer::GetRenderTargetTexture(RenderTargetID id) { return 0; }
+TextureID VulkanRenderer::GetRenderTargetTexture(RenderTargetID id) { return {}; }
 
 void VulkanRenderer::WaitIdle() { vkDeviceWaitIdle(ref_device->GetVkDevice()); }
 
@@ -822,7 +814,7 @@ TextureID VulkanRenderer::CreateTexture(const std::string &name, const unsigned 
 
 	if (result != ERROR_CODE::OK) {
 		PE_LOG_FATAL("Failed to create staging buffer for texture: " + name);
-		return INVALID_HANDLE;
+		return {};
 	}
 
 	stagingBuffer.Map();
@@ -845,7 +837,7 @@ TextureID VulkanRenderer::CreateTexture(const std::string &name, const unsigned 
 	t.imageView = CreateImageView(t.image, t.format, VK_IMAGE_ASPECT_COLOR_BIT, viewType, t.layerCount);
 
 	stagingBuffer.Shutdown();
-	return m_textures.Add(std::move(t));
+	return TextureID{m_textures.Add(std::move(t))};
 }
 
 MeshID VulkanRenderer::CreateMesh(const std::string &name, const MeshData &meshData) {
@@ -853,7 +845,7 @@ MeshID VulkanRenderer::CreateMesh(const std::string &name, const MeshData &meshD
 
 	if (m_currentVertexOffset + vertexDataSize > MAX_VERTEX_BUFFER_SIZE) {
 		PE_LOG_FATAL("Global Vertex Buffer is full!");
-		return INVALID_HANDLE;
+		return {};
 	}
 
 	m_vertexBuffer->UpdateStaged(m_command->GetCommandPool(), ref_device->GetGraphicsQueue(), meshData.Vertices.data(),
@@ -863,7 +855,7 @@ MeshID VulkanRenderer::CreateMesh(const std::string &name, const MeshData &meshD
 
 	if (m_currentIndexOffset + indexDataSize > MAX_VERTEX_BUFFER_SIZE) {
 		PE_LOG_FATAL("Global Index Buffer is full!");
-		return INVALID_HANDLE;
+		return {};
 	}
 
 	m_indexBuffer->UpdateStaged(m_command->GetCommandPool(), ref_device->GetGraphicsQueue(), meshData.Indices.data(),
@@ -882,18 +874,18 @@ MeshID VulkanRenderer::CreateMesh(const std::string &name, const MeshData &meshD
 	m_currentVertexOffset += vertexDataSize;
 	m_currentIndexOffset += indexDataSize;
 
-	return m_meshes.Add(std::move(m));
+	return MeshID{m_meshes.Add(std::move(m))};
 }
 
 ShaderID VulkanRenderer::CreateShader(const ShaderType type, const std::filesystem::path &vsPath,
 									  const std::filesystem::path &psPath) {
 	if (VulkanShader s; s.Initialize(ref_device->GetVkDevice(), type, vsPath, psPath) == ERROR_CODE::OK)
-		return m_shaders.Add(std::move(s));
-	return INVALID_HANDLE;
+		return ShaderID{m_shaders.Add(std::move(s))};
+	return {};
 }
 
 MaterialID VulkanRenderer::CreateMaterial(ShaderID shaderID) {
-	auto type = m_shaders.Data()[shaderID].GetType();
+	auto type = m_shaders.Data()[shaderID.value].GetType();
 
 	std::array<MaterialPropertyLayout, static_cast<size_t>(MaterialProperty::Count)> matLayout;
 	matLayout.fill({0, 0});
@@ -961,7 +953,7 @@ MaterialID VulkanRenderer::CreateMaterial(ShaderID shaderID) {
 		default: PE_LOG_ERROR("Not implemented!"); break;
 	}
 
-	const uint32_t matID = m_materials.Add(std::move(Material()));
+	const MaterialID matID{m_materials.Add(std::move(Material()))};
 	Material	  &mat	 = GetMaterial(matID);
 
 	mat.Initialize(this, matID, shaderID, bufferSize, matLayout);
@@ -975,7 +967,7 @@ MaterialID VulkanRenderer::CreateMaterial(ShaderID shaderID) {
 	if (result < ERROR_CODE::WARN_START) {
 		Utilities::SafeShutdown(matBuffer);
 		PE_LOG_FATAL("Vulkan can't created material!");
-		return INVALID_HANDLE;
+		return {};
 	}
 
 	matBuffer->Map();
@@ -988,7 +980,7 @@ MaterialID VulkanRenderer::CreateMaterial(ShaderID shaderID) {
 	VkDescriptorSet matSet;
 	if (vkAllocateDescriptorSets(ref_device->GetVkDevice(), &allocInfo, &matSet) != VK_SUCCESS) {
 		PE_LOG_FATAL("Failed to allocate Material Descriptor Set!");
-		return INVALID_HANDLE;
+		return {};
 	}
 
 	m_materialDescriptorSets.push_back(matSet);
@@ -1013,9 +1005,9 @@ MaterialID VulkanRenderer::CreateMaterial(ShaderID shaderID) {
 		// Determine which texture to use.
 		// If the material has a valid texture, use it. Otherwise, fallback to default textures.
 		TextureID texID = materialTextures[i];
-		if (texID == INVALID_HANDLE) {
+		if (!texID.IsValid()) {
 			// First 12 textures are default textures based on TextureType enum.
-			texID = Assets::AssetManager::RequestDefaultTexture(static_cast<TextureType>(i));
+			texID = Assets::AssetManager::GetDefaultTextureIDByType(static_cast<TextureType>(i));
 		}
 
 		UpdateMaterialTexture(matID, static_cast<TextureType>(i), texID);
@@ -1049,9 +1041,7 @@ MaterialID VulkanRenderer::CreateMaterial(ShaderID shaderID) {
 	}
 
 	const auto &propData = mat.GetPropertyData();
-	if (!propData.empty()) {
-		matBuffer->WriteToMapped(propData.data(), propData.size(), 0);
-	}
+	if (!propData.empty()) { matBuffer->WriteToMapped(propData.data(), propData.size(), 0); }
 
 	return matID;
 }
@@ -1111,7 +1101,7 @@ ERROR_CODE VulkanRenderer::CreateGlobalTextureSamplers() {
 		return ERROR_CODE::VULKAN_SAMPLER_CREATION_FAILED;
 	}
 
-	// --- 6. Shadow PCF ---
+	// 6. Shadow PCF
 	info.anisotropyEnable		 = VK_FALSE;
 	info.maxAnisotropy			 = 1.0f;
 	info.mipLodBias				 = 0.0f;
@@ -1370,10 +1360,8 @@ ERROR_CODE VulkanRenderer::CreateParticleResources() {
 }
 
 ERROR_CODE VulkanRenderer::CreateParticlePipeline() {
-	// 1. Load Shaders (Ensure these files exist in your assets folder!)
 	VulkanShader &particleShader = m_shaders.Get(Assets::AssetManager::DefaultParticleShaderID);
 
-	// 2. Define Vertex Input (The Critical Part)
 	const std::vector bindings({Vertex::GetBindingDescription(), GPUInstanceData::GetBindingDescription()});
 
 	std::vector<VkVertexInputAttributeDescription> attribs;
@@ -1385,11 +1373,11 @@ ERROR_CODE VulkanRenderer::CreateParticlePipeline() {
 
 	// 3. Pipeline Config
 	PipelineDescription desc;
-	desc.enableBlend	  = true;	// Particles need blending!
-	desc.enableDepthWrite = false;	// Soft particles: Don't write depth, but DO test depth
+	desc.enableBlend	  = true;
+	desc.enableDepthWrite = false;
 	desc.enableDepthTest  = true;
 	desc.enableDepthBias  = false;
-	desc.cullMode		  = VK_CULL_MODE_NONE;	// View-aligned quads can be finicky, safer to disable cull
+	desc.cullMode		  = VK_CULL_MODE_NONE;
 	desc.colorFormat	  = m_swapChain->GetImageFormat();
 	desc.depthFormat	  = m_depthTexture.format;
 	desc.wireframe		  = false;
@@ -1407,9 +1395,9 @@ ERROR_CODE VulkanRenderer::CreateVertexBuffer() {
 	VkBufferUsageFlags usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 	auto result = m_vertexBuffer->Initialize(ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(),
-											 MAX_VERTEX_BUFFER_SIZE,  // 50MB sabit boyut
+											 MAX_VERTEX_BUFFER_SIZE,
 											 usage, VK_SHARING_MODE_EXCLUSIVE,
-											 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT  // GPU tarafında allocate ediyoruz
+											 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
 
 	if (result < ERROR_CODE::WARN_START) {
@@ -1428,9 +1416,9 @@ ERROR_CODE VulkanRenderer::CreateIndexBuffer() {
 	VkBufferUsageFlags usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 	auto result = m_indexBuffer->Initialize(ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(),
-											MAX_VERTEX_BUFFER_SIZE,	 // 50MB sabit boyut
+											MAX_VERTEX_BUFFER_SIZE,
 											usage, VK_SHARING_MODE_EXCLUSIVE,
-											VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT	 // GPU tarafında allocate ediyoruz
+											VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
 
 	if (result < ERROR_CODE::WARN_START) {
@@ -1445,14 +1433,9 @@ ERROR_CODE VulkanRenderer::CreateIndexBuffer() {
 }
 
 ERROR_CODE VulkanRenderer::CreateUniformBuffers(const uint32_t maxModelCount) {
-	// Resize vectors to match frames in flight (defined in your Config or Constants)
-	// Assuming ref_renderConfig.maxFramesInFlight is e.g., 2
 	m_perPassBuffers.resize(ref_renderConfig->maxFramesInFlight);
 	m_perObjectBuffers.resize(ref_renderConfig->maxFramesInFlight);
 
-	VkDeviceSize globalSize = sizeof(CBPerPass);
-
-	// Calculate dynamic alignment for Object Buffer
 	VkPhysicalDeviceProperties properties{};
 	vkGetPhysicalDeviceProperties(ref_device->GetVkPhysicalDevice(), &properties);
 	VkDeviceSize minAlignment = properties.limits.minUniformBufferOffsetAlignment;
@@ -1460,21 +1443,20 @@ ERROR_CODE VulkanRenderer::CreateUniformBuffers(const uint32_t maxModelCount) {
 	m_dynamicAlignment = sizeof(CBPerObject);
 
 	// Round up to the next multiple of minAlignment
-	if (minAlignment > 0) {
-		m_dynamicAlignment = (m_dynamicAlignment + minAlignment - 1) & ~(minAlignment - 1);
-	}
+	if (minAlignment > 0) { m_dynamicAlignment = (m_dynamicAlignment + minAlignment - 1) & ~(minAlignment - 1); }
 
-	// Allocate enough size for MAX_OBJECTS (e.g., 10,000) * Aligned Size
+	// Allocate enough size for MAX_OBJECTS  * Aligned Size
 	VkDeviceSize objectBufferSize = m_dynamicAlignment * maxModelCount;
 
 	for (int i = 0; i < ref_renderConfig->maxFramesInFlight; i++) {
+		constexpr VkDeviceSize globalSize = sizeof(CBPerPass);
 		// 1. Create Global Buffer (Set 0)
 		m_perPassBuffers[i] = new VulkanBuffer();
 		ERROR_CODE result	= m_perPassBuffers[i]->Initialize(
 			ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(), globalSize,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_SHARING_MODE_EXCLUSIVE,													// Standard mode
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT	// Coherent = no need to Flush()
+			VK_SHARING_MODE_EXCLUSIVE,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		);
 		if (result < ERROR_CODE::WARN_START) {
 			Utilities::SafeShutdown(m_perPassBuffers[i]);
@@ -1484,7 +1466,6 @@ ERROR_CODE VulkanRenderer::CreateUniformBuffers(const uint32_t maxModelCount) {
 
 		m_perPassBuffers[i]->Map();
 
-		// 2. Create Object Buffer (Set 1)
 		m_perObjectBuffers[i] = new VulkanBuffer();
 		result				  = m_perObjectBuffers[i]->Initialize(
 			ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(), objectBufferSize,
@@ -1503,9 +1484,8 @@ ERROR_CODE VulkanRenderer::CreateUniformBuffers(const uint32_t maxModelCount) {
 }
 
 ERROR_CODE VulkanRenderer::CreateDescriptorPool() {
-	uint32_t maxFrames = static_cast<uint32_t>(ref_renderConfig->maxFramesInFlight);
-	// Arbitrary limit for materials (e.g., 1000 materials)
-	uint32_t maxMaterials = ref_renderConfig->maxMaterialCount;
+	const uint32_t maxFrames = ref_renderConfig->maxFramesInFlight;
+	const uint32_t maxMaterials = ref_renderConfig->maxMaterialCount;
 
 	std::vector<VkDescriptorPoolSize> poolSizes = {
 		{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, maxFrames + maxMaterials},
@@ -1515,7 +1495,7 @@ ERROR_CODE VulkanRenderer::CreateDescriptorPool() {
 	VkDescriptorPoolCreateInfo poolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
 	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 	poolInfo.pPoolSizes	   = poolSizes.data();
-	// Max Sets = Frames (Set 0) + Frames (Set 1) + Materials (Set 2)
+	// TODO: Remove literal '50' in here!
 	poolInfo.maxSets = (maxFrames * 2) + maxMaterials + 50;
 
 	if (vkCreateDescriptorPool(ref_device->GetVkDevice(), &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS) {
@@ -1529,7 +1509,6 @@ ERROR_CODE VulkanRenderer::CreateDescriptorPool() {
 ERROR_CODE VulkanRenderer::CreateDescriptorSets() {
 	const uint32_t frames = ref_renderConfig->maxFramesInFlight;
 
-	// Resize vectors to hold the sets
 	m_perPassDescriptorSets.resize(frames);
 	m_perObjectDescriptorSets.resize(frames);
 
@@ -1566,9 +1545,9 @@ ERROR_CODE VulkanRenderer::CreateDescriptorSets() {
 		passWrites[0].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		passWrites[0].pBufferInfo	  = &perPassBufferInfo;
 
-		// Binding 1: Shadow Map Texture (YENİ)
+		// Binding 1: Shadow Map Texture
 		VkDescriptorImageInfo shadowImageInfo{};
-		shadowImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;	 // Shader okuyacak
+		shadowImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		shadowImageInfo.imageView	= m_shadowMap.texture.imageView;
 		shadowImageInfo.sampler		= m_globalSamplers[static_cast<size_t>(SamplerType::ShadowPCF)];
 
@@ -1610,7 +1589,6 @@ ERROR_CODE VulkanRenderer::CreateDescriptorSets() {
 		objWrite.dstSet			 = m_perObjectDescriptorSets[i];
 		objWrite.dstBinding		 = 0;
 		objWrite.dstArrayElement = 0;
-		// CRITICAL: Must match layout (DYNAMIC)
 		objWrite.descriptorType	 = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 		objWrite.descriptorCount = 1;
 		objWrite.pBufferInfo	 = &perObjBufferInfo;

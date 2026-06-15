@@ -151,9 +151,7 @@ void ParticleSystem::OnUpdate(float dt) {
 			}
 		}
 
-		if (!emitter.particles.empty()) {
-			ref_renderer->SubmitParticles(emitter.textureID, emitter.particles);
-		}
+		if (!emitter.particles.empty()) { ref_renderer->SubmitParticles(emitter.textureID, emitter.particles); }
 	}
 }
 }  // namespace PE::Graphics::Systems
