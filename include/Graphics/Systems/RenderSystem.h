@@ -1,7 +1,7 @@
 #pragma once
 #include "../../ECS/ISystem.h"
 #include "CameraSystem.h"
-#include "ECS/EntityManager.h"
+#include "ECS/ECSManager.h"
 #include "Graphics/IRenderer.h"
 #include "Graphics/RenderConfig.h"
 #include "Graphics/Vulkan/VulkanRenderer.h"
@@ -16,12 +16,12 @@ public:
 	RenderSystem &operator=(RenderSystem &&)	  = delete;
 	~RenderSystem() override					  = default;
 
-	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::EntityManager *entityManager, CameraSystem *cameraSystem,
+	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager, CameraSystem *cameraSystem,
 						  GLFWwindow *window, Core::EngineConfig &config);
 	ERROR_CODE Shutdown() override;
 
 	void OnUpdate(float dt) override;
-	void OnResize(const RenderConfig &config);
+	void OnResize(const RenderConfig &config) const;
 
 	template <typename T>
 	T *GetRenderer() const {
@@ -33,8 +33,8 @@ public:
 private:
 	ERROR_CODE InitializeRenderer(GLFWwindow *window, const Core::EngineConfig &config);
 
-	ECS::EntityManager *ref_entityManager = nullptr;
-	CameraSystem	   *ref_cameraSystem  = nullptr;
+	ECS::ECSManager	   *ref_eM			 = nullptr;
+	CameraSystem	   *ref_cameraSystem = nullptr;
 	Core::EngineConfig *ref_engineConfig;
 	RenderConfig	   *ref_renderConfig;
 	ECS::EntityID		ref_activeCamEntityID = UINT32_MAX;

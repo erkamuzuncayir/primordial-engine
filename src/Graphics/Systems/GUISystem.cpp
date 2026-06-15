@@ -5,14 +5,14 @@
 #include <string.h>
 
 #include "Assets/AssetManager.h"
-#include "ECS/EntityManager.h"
+#include "ECS/ECSManager.h"
 #include "Graphics/Components/Camera.h"
 #include "Graphics/Components/DirectionalLight.h"
 #include "Graphics/Components/MeshRenderer.h"
 #include "Graphics/RenderTypes.h"
 #include "Scene/Components/DayNightCycle.h"
 #include "Scene/Components/Tag.h"
-#include "Scene/Systems/SceneControlSystem.h"
+#include "Scene/Systems/SceneManager.h"
 #include "Utilities/EnumReflection.h"
 #include "Utilities/Logger.h"
 #include "Utilities/MemoryUtilities.h"
@@ -27,8 +27,7 @@ struct DirectionalLight;
 }
 
 namespace PE::Graphics::Systems {
-ERROR_CODE GUISystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManager *entityManager,
-								 Scene::Systems::SceneControlSystem *sceneControlSystem, IRenderer *renderer) {
+ERROR_CODE GUISystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager, IRenderer *renderer) {
 	PE_CHECK_STATE_INIT(m_state, "GUI system is already initialized!");
 	m_state = SystemState::Initializing;
 
@@ -38,9 +37,6 @@ ERROR_CODE GUISystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManag
 	ref_renderer = renderer;
 
 	m_fpsTimer = new Utilities::Timer();
-	ERROR_CODE result;
-
-	PE_CHECK(result, ref_renderer->InitGUI());
 
 	PE_LOG_INFO("GUI System Initialized.");
 	m_state = SystemState::Running;
@@ -60,7 +56,7 @@ ERROR_CODE GUISystem::Shutdown() {
 void GUISystem::OnUpdate(float dt) {
 	if (m_state != SystemState::Running) return;
 
-	ref_renderer->NewFrameGUI();
+	// ref_renderer->NewFrameGUI();
 
 	if (m_shouldRender) {
 		DrawPerformanceStats(dt);
@@ -119,7 +115,7 @@ void GUISystem::DrawHierarchy() {
 void GUISystem::DrawEntityNodeRecursive(uint32_t												   entityID,
 										const std::unordered_map<uint32_t, std::vector<uint32_t>> &childMap) {
 	std::string name = "Entity " + std::to_string(entityID);
-	if (auto *tag = ref_eM->TryGetTIComponent<PE::Scene::Components::Tag>(entityID)) {
+	if (auto *tag = ref_eM->TryGetTComponent<PE::Scene::Components::Tag>(entityID)) {
 		if (!tag->name.empty()) name = tag->name;
 	}
 
@@ -150,12 +146,12 @@ void GUISystem::DrawInspector() {
 	}
 
 	if (m_selectedEntity != ECS::INVALID_ENTITY_ID) {
-		if (auto *tag = ref_eM->TryGetTIComponent<Scene::Components::Tag>(m_selectedEntity)) {
+		if (auto *tag = ref_eM->TryGetTComponent<Scene::Components::Tag>(m_selectedEntity)) {
 			ImGui::InputText("Name", &tag->name);
 		}
 		ImGui::Separator();
 
-		if (auto *tf = ref_eM->TryGetTIComponent<PE::Scene::Components::Transform>(m_selectedEntity)) {
+		if (auto *tf = ref_eM->TryGetTComponent<PE::Scene::Components::Transform>(m_selectedEntity)) {
 			if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
 				bool changed = false;
 
@@ -173,7 +169,7 @@ void GUISystem::DrawInspector() {
 			}
 		}
 
-		if (auto *cam = ref_eM->TryGetTIComponent<PE::Graphics::Components::Camera>(m_selectedEntity)) {
+		if (auto *cam = ref_eM->TryGetTComponent<PE::Graphics::Components::Camera>(m_selectedEntity)) {
 			if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
 				bool changed = false;
 				changed |= ImGui::Checkbox("Active", &cam->isActive);
@@ -185,7 +181,7 @@ void GUISystem::DrawInspector() {
 			}
 		}
 
-		if (auto *mr = ref_eM->TryGetTIComponent<Components::MeshRenderer>(m_selectedEntity)) {
+		if (auto *mr = ref_eM->TryGetTComponent<Components::MeshRenderer>(m_selectedEntity)) {
 			if (ImGui::CollapsingHeader("Mesh Renderer", ImGuiTreeNodeFlags_DefaultOpen)) {
 				ImGui::Checkbox("Visible", &mr->isVisible);
 
@@ -219,13 +215,13 @@ void GUISystem::DrawInspector() {
 			}
 		}
 
-		if (auto *l = ref_eM->TryGetTIComponent<Components::DirectionalLight>(m_selectedEntity)) {
+		if (auto *l = ref_eM->TryGetTComponent<Components::DirectionalLight>(m_selectedEntity)) {
 			if (ImGui::CollapsingHeader("Directional Light", ImGuiTreeNodeFlags_DefaultOpen)) {
 				ImGui::ColorEdit4("Color", &l->color.x);
 			}
 		}
 
-		if (auto *emitter = ref_eM->TryGetTIComponent<Components::ParticleEmitter>(m_selectedEntity)) {
+		if (auto *emitter = ref_eM->TryGetTComponent<Components::ParticleEmitter>(m_selectedEntity)) {
 			if (ImGui::CollapsingHeader("Particle Emitter", ImGuiTreeNodeFlags_DefaultOpen)) {
 				const char *particleTypes[]	 = {"Fire", "Rain", "Snow", "Dust", "Custom"};
 				int			currentTypeIndex = static_cast<int>(emitter->type);
@@ -264,7 +260,7 @@ void GUISystem::DrawInspector() {
 			}
 		}
 
-		if (auto *dnc = ref_eM->TryGetTIComponent<Scene::Components::DayNightCycle>(m_selectedEntity)) {
+		if (auto *dnc = ref_eM->TryGetTComponent<Scene::Components::DayNightCycle>(m_selectedEntity)) {
 			if (ImGui::CollapsingHeader("Day/Night Cycle", ImGuiTreeNodeFlags_DefaultOpen)) {
 				ImGui::Text("Time & Season");
 				ImGui::DragFloat("Time of Day", &dnc->timeOfDay, 0.1f, 0.0f, 24.0f, "%.2f h");

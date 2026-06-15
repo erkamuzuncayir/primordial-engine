@@ -51,35 +51,72 @@ Use these default keybindings to navigate the demo scene:
 | **Trigger Particle Emitter** | `F4`                                          |
 | **Reset Scene**              | `R`                                           |
 
-### 1. Shader Variety
-Demonstration of **Unlit**, **Gouraud Lit**, and **Phong Lit** shaders working seamlessly.
-<video src="https://github.com/user-attachments/assets/936c1005-1aa5-4908-9bbf-a309c17d3360" controls="controls" muted="muted" style="max-width: 100%;">
-</video>
+### 📼 Technical Demonstrations
 
-### 2. Normal Mapping
-Showcasing normal mapping in different objects in scene.
-<video src="https://github.com/user-attachments/assets/86e1bb62-6de8-4bea-b2b7-57566dfbbd42" controls="controls" muted="muted" style="max-width: 100%;">
-</video>
-
-### 3. Advanced Material Effects
-A double-sided shader demonstration used for the snow globe (Skybox inner pass, Fresnel glass outer pass).
-<video src="https://github.com/user-attachments/assets/83494171-2b6d-4222-8914-e9e92a9b7fcd" controls="controls" muted="muted" style="max-width: 100%;">
-</video>
-
-### 4. Dynamic Shadows & Transforms
-Real-time shadow mapping reacting to object scaling/transformation.
-<video src="https://github.com/user-attachments/assets/40ffbea2-2a38-4da3-b605-4b28e04340a6" controls="controls" muted="muted" style="max-width: 100%;">
-</video>
-
-### 5. GPU Particle System
-High-performance GPU-instanced particles generating fire and smoke effects.
-<video src="https://github.com/user-attachments/assets/e9a65579-9858-466e-90ae-1e307357c48f" controls="controls" muted="muted" style="max-width: 100%;">
-</video>
-
-### 6. Editor Integration
-ImGui-based editor demonstrating real-time component inspection.
-<video src="https://github.com/user-attachments/assets/19323626-12b0-41be-a7c8-514732868cff" controls="controls" muted="muted" style="max-width: 100%;">
-</video>
+> **Note:** Click on the thumbnails below to watch the full demonstration videos on YouTube.
+> 
+<table>
+  <tr>
+    <td align="center" width="50%" valign="top">
+      <h3>1. Shader Variety</h3>
+      <br>
+      <a href="https://youtu.be/kWjpq85oEes">
+        <img src="https://img.youtube.com/vi/kWjpq85oEes/maxresdefault.jpg" alt="Shader Variety" style="width:100%;">
+      </a>
+      <br><br>
+      <p><em>Demonstration of <b>Unlit</b>, <b>Gouraud Lit</b>, and <b>Phong Lit</b> shaders working seamlessly.</em></p>
+    </td>
+    <td align="center" width="50%" valign="top">
+      <h3>2. Normal Mapping</h3>
+      <br>
+      <a href="https://youtu.be/OqJbEtCg8QU">
+        <img src="https://img.youtube.com/vi/OqJbEtCg8QU/maxresdefault.jpg" alt="Normal Mapping" style="width:100%;">
+      </a>
+      <br><br>
+      <p><em>Showcasing normal mapping in different objects in scene.</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%" valign="top">
+      <h3>3. Advanced Material Effects</h3>
+      <br>
+      <a href="https://youtu.be/_U6o-T8-XqU">
+        <img src="https://img.youtube.com/vi/_U6o-T8-XqU/maxresdefault.jpg" alt="Advanced Material Effects" style="width:100%;">
+      </a>
+      <br><br>
+      <p><em>A double-sided shader demonstration used for the snow globe (Skybox inner pass, Fresnel glass outer pass).</em></p>
+    </td>
+    <td align="center" width="50%" valign="top">
+      <h3>4. Dynamic Shadows & Transforms</h3>
+      <br>
+      <a href="https://youtu.be/uSxcTGjZ-4A">
+        <img src="https://img.youtube.com/vi/uSxcTGjZ-4A/maxresdefault.jpg" alt="Dynamic Shadows & Transforms" style="width:100%;">
+      </a>
+      <br><br>
+      <p><em>Real-time shadow mapping reacting to object scaling/transformation.</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%" valign="top">
+      <h3>5. GPU Particle System</h3>
+      <br>
+      <a href="https://youtu.be/MHAIRJkfjI8">
+        <img src="https://img.youtube.com/vi/MHAIRJkfjI8/maxresdefault.jpg" alt="GPU Particle System" style="width:100%;">
+      </a>
+      <br><br>
+      <p><em>High-performance GPU-instanced particles generating fire and smoke effects.</em></p>
+    </td>
+    <td align="center" width="50%" valign="top">
+      <h3>6. Editor Integration</h3>
+      <br>
+      <a href="https://youtu.be/Etl8kPQbWW4">
+        <img src="https://img.youtube.com/vi/Etl8kPQbWW4/maxresdefault.jpg" alt="Editor Integration" style="width:100%;">
+      </a>
+      <br><br>
+      <p><em>ImGui-based editor demonstrating real-time component inspection.</em></p>
+    </td>
+  </tr>
+</table>
 
 ---
 

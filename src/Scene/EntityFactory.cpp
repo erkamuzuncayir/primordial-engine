@@ -4,7 +4,7 @@
 #include "Scene/Components/Transform.h"
 
 namespace PE::Scene {
-ERROR_CODE EntityFactory::Initialize(ECS::EntityManager *entityManager) {
+ERROR_CODE EntityFactory::Initialize(ECS::ECSManager *entityManager) {
 	PE_CHECK_ALREADY_INIT(m_isInitialized, "Entity factory is already initialized!");
 	ref_eM			= entityManager;
 	m_isInitialized = true;

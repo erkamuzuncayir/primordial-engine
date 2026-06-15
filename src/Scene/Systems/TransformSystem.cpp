@@ -7,7 +7,7 @@
 #include "Scene/Components/Transform.h"
 
 namespace PE::Scene::Systems {
-ERROR_CODE TransformSystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManager *entityManager,
+ERROR_CODE TransformSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager,
 									   Input::InputSystem *inputSystem, Graphics::Systems::CameraSystem *cameraSystem,
 									   const Core::EngineConfig &config) {
 	PE_CHECK_STATE_INIT(m_state, "Transform system is already initialized!");
@@ -18,24 +18,19 @@ ERROR_CODE TransformSystem::Initialize(const ECS::ESystemStage stage, ECS::Entit
 	ref_config = &config;
 	m_stage	   = stage;
 
-	ERROR_CODE result;
-	PE_CHECK(result, ref_eM->RegisterSystem(this));
 	m_state = SystemState::Running;
-
-	return result;
+	return ERROR_CODE::OK;
 }
 
 ERROR_CODE TransformSystem::Shutdown() {
 	if (m_state == SystemState::Uninitialized || m_state == SystemState::ShuttingDown) return ERROR_CODE::OK;
 	m_state = SystemState::ShuttingDown;
 
-	ERROR_CODE result;
-	PE_CHECK(result, ref_eM->UnregisterSystem(this));
 	m_stage	 = ECS::ESystemStage::Count;
 	m_typeID = UINT32_MAX;
 	m_state	 = SystemState::Uninitialized;
 
-	return result;
+	return ERROR_CODE::OK;
 }
 
 void TransformSystem::OnUpdate(float dt) {

@@ -13,20 +13,19 @@
 #include "Utilities/MemoryUtilities.h"
 
 namespace PE::Graphics::Systems {
-ERROR_CODE RenderSystem::Initialize(const ECS::ESystemStage stage, ECS::EntityManager *entityManager,
+ERROR_CODE RenderSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager,
 									CameraSystem *cameraSystem, GLFWwindow *window, Core::EngineConfig &config) {
 	PE_CHECK_STATE_INIT(m_state, "Render system is already initialized!");
 	m_state = SystemState::Initializing;
 
-	m_typeID		  = GetUniqueISystemTypeID<RenderSystem>();
-	ref_entityManager = entityManager;
-	ref_cameraSystem  = cameraSystem;
-	m_stage			  = stage;
-	ref_engineConfig  = &config;
-	ref_renderConfig  = &config.renderConfig;
+	m_typeID		 = GetUniqueISystemTypeID<RenderSystem>();
+	ref_eM			 = entityManager;
+	ref_cameraSystem = cameraSystem;
+	m_stage			 = stage;
+	ref_engineConfig = &config;
+	ref_renderConfig = &config.renderConfig;
 
 	ERROR_CODE result;
-	PE_CHECK(result, ref_entityManager->RegisterSystem(this));
 	PE_CHECK(result, InitializeRenderer(window, config));
 
 	m_state = SystemState::Running;
@@ -39,7 +38,6 @@ ERROR_CODE RenderSystem::Shutdown() {
 
 	ERROR_CODE result;
 	PE_CHECK(result, Utilities::SafeShutdownReturnsErrorCode(m_renderer));
-	PE_CHECK(result, ref_entityManager->UnregisterSystem(this));
 
 	m_stage	 = ECS::ESystemStage::Count;
 	m_typeID = UINT32_MAX;
@@ -54,13 +52,13 @@ void RenderSystem::OnUpdate(float dt) {
 	ref_activeCamEntityID = ref_cameraSystem->GetActiveCameraEntityID();
 	if (ref_activeCamEntityID == UINT32_MAX) return;
 
-	const auto &cam			 = ref_entityManager->GetCompArr<Components::Camera>().Get(ref_activeCamEntityID);
-	const auto &camTransform = ref_entityManager->GetCompArr<Scene::Components::Transform>().Get(ref_activeCamEntityID);
+	const auto &cam			 = ref_eM->GetCompArr<Components::Camera>().Get(ref_activeCamEntityID);
+	const auto &camTransform = ref_eM->GetCompArr<Scene::Components::Transform>().Get(ref_activeCamEntityID);
 
 	ECS::EntityID activeLightID	  = ECS::INVALID_ENTITY_ID;
 	bool		  isDayNightLight = false;
 
-	if (auto &dncArr = ref_entityManager->GetCompArr<Scene::Components::DayNightCycle>(); dncArr.GetCount() > 0) {
+	if (auto &dncArr = ref_eM->GetCompArr<Scene::Components::DayNightCycle>(); dncArr.GetCount() > 0) {
 		activeLightID = dncArr.Data()[0].activeLightEntity;
 		if (activeLightID != ECS::INVALID_ENTITY_ID) {
 			isDayNightLight = true;
@@ -68,7 +66,7 @@ void RenderSystem::OnUpdate(float dt) {
 	}
 
 	if (activeLightID == ECS::INVALID_ENTITY_ID) {
-		if (auto &lights = ref_entityManager->GetCompArr<Components::DirectionalLight>(); lights.GetCount() > 0) {
+		if (auto &lights = ref_eM->GetCompArr<Components::DirectionalLight>(); lights.GetCount() > 0) {
 			activeLightID	= lights.Index()[0];
 			isDayNightLight = false;
 		}
@@ -78,11 +76,11 @@ void RenderSystem::OnUpdate(float dt) {
 	auto						 positionOfDirLight = Math::Vec3(0, 100, 0);
 
 	if (activeLightID != ECS::INVALID_ENTITY_ID) {
-		if (auto *light = ref_entityManager->TryGetTIComponent<Components::DirectionalLight>(activeLightID)) {
+		if (auto *light = ref_eM->TryGetTComponent<Components::DirectionalLight>(activeLightID)) {
 			dirLightData = *light;
 		}
 
-		if (auto *tf = ref_entityManager->TryGetTIComponent<Scene::Components::Transform>(activeLightID)) {
+		if (auto *tf = ref_eM->TryGetTComponent<Scene::Components::Transform>(activeLightID)) {
 			positionOfDirLight = tf->position;
 		}
 	} else {
@@ -109,8 +107,8 @@ void RenderSystem::OnUpdate(float dt) {
 
 	m_renderer->UpdateGlobalBuffer(perPassData);
 
-	auto &modelArr	   = ref_entityManager->GetCompArr<Components::MeshRenderer>();
-	auto &transformArr = ref_entityManager->GetCompArr<Scene::Components::Transform>();
+	auto &modelArr	   = ref_eM->GetCompArr<Components::MeshRenderer>();
+	auto &transformArr = ref_eM->GetCompArr<Scene::Components::Transform>();
 
 	Graphics::RenderPass geoPass =
 		(ref_renderConfig->renderPath == RenderPathType::Deferred) ? RenderPass::GBuffer : RenderPass::Forward;
@@ -150,7 +148,7 @@ void RenderSystem::OnUpdate(float dt) {
 	if (shouldFlush) m_renderer->Flush();
 }
 
-void RenderSystem::OnResize(const RenderConfig &config) {
+void RenderSystem::OnResize(const RenderConfig &config) const {
 	float newAspect = static_cast<float>(config.width) / static_cast<float>(config.height);
 	if (newAspect < 0.001f) newAspect = 1.777f;
 	ref_cameraSystem->OnResize(newAspect);

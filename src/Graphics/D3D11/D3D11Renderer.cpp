@@ -446,18 +446,18 @@ ERROR_CODE D3D11Renderer::InitializeD3D11(const RenderConfig &config, const HWND
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 	D3D_FEATURE_LEVEL featureLevel;
-	auto			  hResult = LOG_HR_RESULT(D3D11CreateDevice(nullptr,				   // dedicated gpu adapter
-																D3D_DRIVER_TYPE_HARDWARE,  // driver type
-																nullptr,				   // no software device
-																createDeviceFlags,		   // flags
-																nullptr,  // default feature level (D3D_FEATURE_LEVEL_11_0)
-																0,		  // no SDK layers
-																D3D11_SDK_VERSION,	// SDK version
-																&m_device,			// device
-																&featureLevel,		// feature level
-																&m_context),
-											  Utilities::LogLevel::Fatal,
-											  "HRESULT failed while creating D3D11 device!");  // device context
+	auto hResult = LOG_HR_RESULT(D3D11CreateDevice(nullptr,					  // dedicated gpu adapter
+												   D3D_DRIVER_TYPE_HARDWARE,  // driver type
+												   nullptr,					  // no software device
+												   createDeviceFlags,		  // flags
+												   nullptr,			   // default feature level (D3D_FEATURE_LEVEL_11_0)
+												   0,				   // no SDK layers
+												   D3D11_SDK_VERSION,  // SDK version
+												   &m_device,		   // device
+												   &featureLevel,	   // feature level
+												   &m_context),
+								 Utilities::LogLevel::Fatal,
+								 "HRESULT failed while creating D3D11 device!");  // device context
 
 	if (FAILED(hResult)) return ERROR_CODE::DX11_DEVICE_CREATION_FAILED;
 

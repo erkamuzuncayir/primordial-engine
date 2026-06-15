@@ -9,16 +9,16 @@
 namespace PE::ECS {
 enum class ESystemStage {
 	EarlyUpdate = 0,
-	Transform,
-	Animation,
+	Logic,	// TODO: For user scripts. Make an ordering mechanism between those logics.
+	SceneManager,
+	Animation,	// Placeholder
 	Physics,
-	SceneControl,
-	GameLogic,	// TODO: For user scripts. Make an ordering mechanism between those logics.
-	Camera,
-	GUI,
-	Particle,
-	Render,
 	LateUpdate,
+	Transform,
+	Camera,
+	Particle,
+	GUI,
+	Render,
 	Count
 };
 
