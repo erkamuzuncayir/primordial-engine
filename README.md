@@ -5,10 +5,14 @@
 ![Graphics API](https://img.shields.io/badge/graphics-Vulkan%20%7C%20DirectX%2011-red)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+> [!IMPORTANT]
+> **This GitHub repository is a read-only mirror.**
+> All active development, issue tracking, and contributions are hosted on my personal [forgejo](https://forgejo.org/) instance. Please visit **[git.uzuncayir.dev/erkam/primordial-engine](https://git.uzuncayir.dev/erkam/primordial-engine)** to access the latest source code, report bugs, or submit pull requests.
+
 **Primordial Engine** is an under-development C++ game engine project aimed at high-performance, data-oriented design. Currently in its `v0.x` phase, the project features a custom ECS architecture and is actively building out its core rendering foundation to support both Vulkan and DirectX 11 backends.
 
 ## 🚧 Active Development
-> *This section tracks my immediate focus. For the full roadmap and backlog, visit the [**Project Board**](https://github.com/users/erkamuzuncayir/projects/3).*
+> *This section tracks my immediate focus. For the macro-level overview, visit the [**Primordial Engine Roadmap**](https://git.uzuncayir.dev/erkam/primordial-engine/projects/1).*
 
 - [ ] ⚙️ **Physics:** Start to implement physics module
 - [ ] 🏗️ **Architecture:** Refactor Engine to Dynamic Library (DLL)
