@@ -185,7 +185,7 @@ Ensure you have the following installed and available in your system PATH:
 
 ### 1. Clone the Repository
 ```bash
-git clone --recursive https://github.com/erkamuzuncayir/primordial-engine.git
+git clone --recursive https://git.uzuncayir.dev/erkam/primordial-engine.git
 cd primordial-engine
 ```
 
