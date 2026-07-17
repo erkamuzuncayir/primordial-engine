@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <unordered_map>
+#include <memory>
 
 #include "AssetInfo.h"
 #include "Common/Common.h"
@@ -63,27 +64,41 @@ public:
 	static const auto &GetShaderRegistry() { return s_shaderAssetRegistry; }
 	static const auto &GetModelRegistry() { return s_modelAssetRegistry; }
 
-	static inline constexpr std::string_view	 DefaultShaderName		   = "Default_Phong_Forward";
-	static inline constexpr std::string_view	 DefaultUnlitShaderName	   = "Default_Unlit";
-	static inline constexpr std::string_view	 DefaultParticleShaderName = "Default_Particle";
-	static inline constexpr std::string_view	 DefaultShadowShaderName   = "Default_Shadow";
-	static inline constexpr Graphics::ShaderType DefaultShaderType		   = Graphics::ShaderType::Lit;
-	static inline constexpr std::string_view	 DefaultMaterialName	   = "Default_Phong";
-	static inline constexpr std::string_view	 DefaultQuadName		   = "Default_Quad";
+	static constexpr std::string_view	  DefaultShaderName			 = "Default_Phong_Forward";
+	static constexpr std::string_view	  DefaultUnlitShaderName	 = "Default_Unlit";
+	static constexpr std::string_view	  DefaultParticleShaderName	 = "Default_Particle";
+	static constexpr std::string_view	  DefaultShadowShaderName	 = "Default_Shadow";
+	static constexpr std::string_view	  DefaultSnowGlobeShaderName = "SnowGlobe";
+	static constexpr Graphics::ShaderType DefaultShaderType			 = Graphics::ShaderType::Lit;
+	static constexpr std::string_view	  DefaultMaterialName		 = "Default_Phong";
+	static constexpr std::string_view	  DefaultBoxName			 = "Default_Box";
+	static constexpr std::string_view	  DefaultCapsuleName		 = "Default_Capsule";
+	static constexpr std::string_view	  DefaultCylinderName		 = "Default_Cylinder";
+	static constexpr std::string_view	  DefaultGeosphereName		 = "Default_Geosphere";
+	static constexpr std::string_view	  DefaultGridName			 = "Default_Grid";
+	static constexpr std::string_view	  DefaultQuadName			 = "Default_Quad";
+	static constexpr std::string_view	  DefaultSphereName			 = "Default_Sphere";
 
-	static inline Graphics::ShaderID   DefaultShaderID		   = Graphics::INVALID_HANDLE;
-	static inline Graphics::ShaderID   DefaultUnlitShaderID	   = Graphics::INVALID_HANDLE;
-	static inline Graphics::ShaderID   DefaultParticleShaderID = Graphics::INVALID_HANDLE;
-	static inline Graphics::ShaderID   DefaultShadowShaderID   = Graphics::INVALID_HANDLE;
-	static inline Graphics::MaterialID DefaultMaterialID	   = Graphics::INVALID_HANDLE;
-	static inline Graphics::MaterialID DefaultQuadID		   = Graphics::INVALID_HANDLE;
+	static inline Graphics::ShaderID   DefaultShaderID			= Graphics::INVALID_HANDLE;
+	static inline Graphics::ShaderID   DefaultUnlitShaderID		= Graphics::INVALID_HANDLE;
+	static inline Graphics::ShaderID   DefaultParticleShaderID	= Graphics::INVALID_HANDLE;
+	static inline Graphics::ShaderID   DefaultShadowShaderID	= Graphics::INVALID_HANDLE;
+	static inline Graphics::ShaderID   DefaultSnowGlobeShaderID = Graphics::INVALID_HANDLE;
+	static inline Graphics::MaterialID DefaultMaterialID		= Graphics::INVALID_HANDLE;
+	static inline Graphics::MeshID	   DefaultBoxID				= Graphics::INVALID_HANDLE;
+	static inline Graphics::MeshID	   DefaultCapsuleID			= Graphics::INVALID_HANDLE;
+	static inline Graphics::MeshID	   DefaultCylinderID		= Graphics::INVALID_HANDLE;
+	static inline Graphics::MeshID	   DefaultGeosphereID		= Graphics::INVALID_HANDLE;
+	static inline Graphics::MeshID	   DefaultGridID			= Graphics::INVALID_HANDLE;
+	static inline Graphics::MeshID	   DefaultQuadID			= Graphics::INVALID_HANDLE;
+	static inline Graphics::MeshID	   DefaultSphereID			= Graphics::INVALID_HANDLE;
 
-	static inline constexpr std::string_view	 ErrorTextureName  = "Error_Texture";
-	static inline constexpr std::string_view	 ErrorShaderName   = "Error_Shader";
-	static inline constexpr std::string_view	 ErrorMaterialName = "Error_Material";
-	static inline constexpr Graphics::ShaderType ErrorShaderType   = Graphics::ShaderType::Lit;
-	static inline Graphics::ShaderID			 ErrorShaderID	   = Graphics::INVALID_HANDLE;
-	static inline Graphics::MaterialID			 ErrorMaterialID   = Graphics::INVALID_HANDLE;
+	static constexpr std::string_view	  ErrorTextureName	= "Error_Texture";
+	static constexpr std::string_view	  ErrorShaderName	= "Error_Shader";
+	static constexpr std::string_view	  ErrorMaterialName = "Error_Material";
+	static constexpr Graphics::ShaderType ErrorShaderType	= Graphics::ShaderType::Lit;
+	static inline Graphics::ShaderID	  ErrorShaderID		= Graphics::INVALID_HANDLE;
+	static inline Graphics::MaterialID	  ErrorMaterialID	= Graphics::INVALID_HANDLE;
 
 private:
 	static void ReserveMemory(size_t textureCount, size_t meshCount, size_t materialCount, size_t modelCount,

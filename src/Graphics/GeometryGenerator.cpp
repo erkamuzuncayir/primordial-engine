@@ -9,7 +9,6 @@ void GeometryGenerator::CreateBox(const float width, const float height, const f
 	//
 	// Create the vertices.
 	//
-
 	Vertex v[24];
 
 	const float w2 = 0.5f * width;
@@ -353,6 +352,116 @@ void GeometryGenerator::CreateCylinder(float bottomRadius, float topRadius, floa
 	BuildCylinderBottomCap(bottomRadius, topRadius, height, sliceCount, stackCount, meshData);
 }
 
+void GeometryGenerator::CreateCapsule(float radius, float height, uint32_t sliceCount, uint32_t stackCount,
+									  MeshData &meshData) {
+	meshData.Vertices.clear();
+	meshData.Indices.clear();
+
+	const float halfHeight	= 0.5f * height;
+	const float yMax		= halfHeight + radius;
+	const float totalHeight = height + 2.0f * radius;
+
+	// Top Pole
+	Vertex topVertex(0.0f, yMax, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	meshData.Vertices.push_back(topVertex);
+
+	const float phiStep	  = (Math::PI / 2.0f) / stackCount;	 // Half pi for each hemisphere
+	const float thetaStep = Math::TAU / sliceCount;
+
+	// Top Hemisphere (including the top cylinder ring)
+	for (uint32_t i = 1; i <= stackCount; ++i) {
+		const float phi = i * phiStep;
+		for (uint32_t j = 0; j <= sliceCount; ++j) {
+			const float theta = j * thetaStep;
+
+			Vertex v;
+			v.Position.x = radius * sinf(phi) * cosf(theta);
+			v.Position.y = halfHeight + radius * cosf(phi);
+			v.Position.z = radius * sinf(phi) * sinf(theta);
+
+			v.Tangent.x = -radius * sinf(phi) * sinf(theta);
+			v.Tangent.y = 0.0f;
+			v.Tangent.z = +radius * sinf(phi) * cosf(theta);
+			v.Tangent	= Math::Normalize(v.Tangent);
+
+			v.Normal.x = sinf(phi) * cosf(theta);
+			v.Normal.y = cosf(phi);
+			v.Normal.z = sinf(phi) * sinf(theta);
+
+			v.TexC.x = theta / Math::TAU;
+			v.TexC.y = (yMax - v.Position.y) / totalHeight;
+
+			meshData.Vertices.push_back(v);
+		}
+	}
+
+	// Bottom Hemisphere (including the bottom cylinder ring)
+	for (uint32_t i = 0; i < stackCount; ++i) {
+		// Start phi from PI/2 for the bottom half
+		const float phi = (Math::PI / 2.0f) + (i * phiStep);
+		for (uint32_t j = 0; j <= sliceCount; ++j) {
+			const float theta = j * thetaStep;
+
+			Vertex v;
+			v.Position.x = radius * sinf(phi) * cosf(theta);
+			v.Position.y = -halfHeight + radius * cosf(phi);
+			v.Position.z = radius * sinf(phi) * sinf(theta);
+
+			v.Tangent.x = -radius * sinf(phi) * sinf(theta);
+			v.Tangent.y = 0.0f;
+			v.Tangent.z = +radius * sinf(phi) * cosf(theta);
+			v.Tangent	= Math::Normalize(v.Tangent);
+
+			v.Normal.x = sinf(phi) * cosf(theta);
+			v.Normal.y = cosf(phi);
+			v.Normal.z = sinf(phi) * sinf(theta);
+
+			v.TexC.x = theta / Math::TAU;
+			v.TexC.y = (yMax - v.Position.y) / totalHeight;
+
+			meshData.Vertices.push_back(v);
+		}
+	}
+
+	// Bottom Pole
+	Vertex bottomVertex(0.0f, -yMax, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	meshData.Vertices.push_back(bottomVertex);
+
+	// Indices Generation
+	const uint32_t ringCount	   = stackCount * 2;
+	const uint32_t ringVertexCount = sliceCount + 1;
+
+	// Top stack indices
+	for (uint32_t i = 1; i <= sliceCount; ++i) {
+		meshData.Indices.push_back(0);
+		meshData.Indices.push_back(i + 1);
+		meshData.Indices.push_back(i);
+	}
+
+	// Inner stack indices
+	uint32_t baseIndex = 1;
+	for (uint32_t i = 0; i < ringCount - 1; ++i) {
+		for (uint32_t j = 0; j < sliceCount; ++j) {
+			meshData.Indices.push_back(baseIndex + i * ringVertexCount + j);
+			meshData.Indices.push_back(baseIndex + i * ringVertexCount + j + 1);
+			meshData.Indices.push_back(baseIndex + (i + 1) * ringVertexCount + j);
+
+			meshData.Indices.push_back(baseIndex + (i + 1) * ringVertexCount + j);
+			meshData.Indices.push_back(baseIndex + i * ringVertexCount + j + 1);
+			meshData.Indices.push_back(baseIndex + (i + 1) * ringVertexCount + j + 1);
+		}
+	}
+
+	// Bottom stack indices
+	const uint32_t southPoleIndex = static_cast<uint32_t>(meshData.Vertices.size()) - 1;
+	baseIndex					  = southPoleIndex - ringVertexCount;
+	for (uint32_t i = 0; i < sliceCount; ++i) {
+		meshData.Indices.push_back(southPoleIndex);
+		meshData.Indices.push_back(baseIndex + i);
+		meshData.Indices.push_back(baseIndex + i + 1);
+	}
+}
+
 void GeometryGenerator::CreateGrid(const float width, const float depth, const uint32_t m, const uint32_t n,
 								   MeshData &meshData) {
 	const uint32_t vertexCount = m * n;
@@ -410,7 +519,7 @@ void GeometryGenerator::CreateGrid(const float width, const float depth, const u
 	}
 }
 
-void GeometryGenerator::CreateQuad(const float width, const float height, MeshData &meshData) {
+void GeometryGenerator::CreateQuad(const float width, const float depth, MeshData &meshData) {
 	meshData.Vertices.clear();
 	meshData.Indices.clear();
 
@@ -420,24 +529,24 @@ void GeometryGenerator::CreateQuad(const float width, const float height, MeshDa
 	// Calculate half the width and half the height.
 	// This ensures that the (0,0,0) point remains exactly in the centre.
 	const float w2 = 0.5f * width;
-	const float h2 = 0.5f * height;
+	const float d2 = 0.5f * depth;
 
 	// --- VERTICES ---
 	// Order: Bottom-Left, Top-Left, Top-Right, Bottom-Right
-	// Position (XYZ), Normal (XYZ), Tangent (XYZ), UV (UV)
-	// We set the Z axis (Depth) to 0.0f because the depth should be managed by the Transform Component (Position.z).
+	// Position (X, Y, Z), Normal (X, Y, Z), Tangent (X, Y, Z), UV (U, V)
+	// The Y coordinate is set to 0.0f to keep the quad flat on the ground.
 
 	// Bottom-Left
-	meshData.Vertices[0] = Vertex(-w2, -h2, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	meshData.Vertices[0] = Vertex(-w2, 0.0f, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
 	// Top-Left
-	meshData.Vertices[1] = Vertex(-w2, h2, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	meshData.Vertices[1] = Vertex(-w2, 0.0f, d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 
 	// Top-Right
-	meshData.Vertices[2] = Vertex(w2, h2, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	meshData.Vertices[2] = Vertex(w2, 0.0f, d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
 	// Bottom-Right
-	meshData.Vertices[3] = Vertex(w2, -h2, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	meshData.Vertices[3] = Vertex(w2, 0.0f, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
 
 	// --- INDICES ---
 	// Counter-clockwise (CCW) winding sequence
@@ -501,7 +610,6 @@ void GeometryGenerator::Subdivide(MeshData &meshData) {
 
 		Vertex m0, m1, m2;
 
-		// Use Math::Vector3 constructors (or just + and * operators)
 		m0.Position = (v0.Position + v1.Position) * 0.5f;
 		m1.Position = (v1.Position + v2.Position) * 0.5f;
 		m2.Position = (v0.Position + v2.Position) * 0.5f;

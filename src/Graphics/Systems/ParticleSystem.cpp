@@ -4,18 +4,17 @@
 
 #include "Graphics/Components/ParticleEmitter.h"
 #include "Graphics/IRenderer.h"
+#include "Math/Random.h"
 #include "Scene/Components/Transform.h"
 
 namespace PE::Graphics::Systems {
-float RandomFloat() { return (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * 2.0f - 1.0f; }
-
-ERROR_CODE ParticleSystem::Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager, IRenderer *renderer) {
+ERROR_CODE ParticleSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *ecsManager, IRenderer *renderer) {
 	PE_CHECK_STATE_INIT(m_state, "Particle system is already initialized!");
 	m_state = SystemState::Initializing;
 
 	m_typeID	 = GetUniqueISystemTypeID<ParticleSystem>();
 	m_stage		 = stage;
-	ref_eM		 = entityManager;
+	ref_eM		 = ecsManager;
 	ref_renderer = renderer;
 	m_state		 = SystemState::Running;
 	return ERROR_CODE::OK;
@@ -34,7 +33,7 @@ void ParticleSystem::OnUpdate(float dt) {
 
 	for (int i = 0; i < compArr.Data().size(); i++) {
 		auto &emitter  = compArr.Data()[i];
-		auto &entityID = compArr.Index()[i];
+		auto const &entityID = compArr.Index()[i];
 
 		emitter.spawnAccumulator += dt;
 		float rate = 1.0f / emitter.spawnRate;
@@ -44,50 +43,50 @@ void ParticleSystem::OnUpdate(float dt) {
 				const auto *transform = ref_eM->TryGetTComponent<Scene::Components::Transform>(entityID);
 				Math::Vec3	origin	  = transform ? transform->position : Math::Vec3(0.0f);
 
-				Graphics::Components::Particle p;
+				Components::Particle p;
 				p.position = origin;
 				p.life	   = emitter.lifeTime;
 				p.size	   = 1.0f;
 				p.color	   = {1, 1, 1, 1};
 
 				if (emitter.type == ParticleType::Fire) {
-					float randomX = RandomFloat() * (emitter.spawnRadius * 0.1f);
-					float randomZ = RandomFloat() * (emitter.spawnRadius * 0.1f);
+					float randomX = Math::Random::Get<float>(-1, 1) * (emitter.spawnRadius * 0.1f);
+					float randomZ = Math::Random::Get<float>(-1, 1) * (emitter.spawnRadius * 0.1f);
 
 					p.position.x += randomX;
 					p.position.z += randomZ;
 
-					p.velocity = {RandomFloat() * 0.5f, 1.5f, RandomFloat() * 0.5f};
+					p.velocity = {Math::Random::Get<float>(-1, 1) * 0.5f, 1.5f, Math::Random::Get<float>(-1, 1) * 0.5f};
 					p.color	   = {1.0f, 0.9f, 0.6f, 1.0f};
 				} else if (emitter.type == ParticleType::Rain || emitter.type == ParticleType::Snow) {
 					p.position.y += 10.0f;
 
-					p.position.x += RandomFloat() * emitter.spawnRadius;
-					p.position.z += RandomFloat() * emitter.spawnRadius;
+					p.position.x += Math::Random::Get<float>(-1, 1) * emitter.spawnRadius;
+					p.position.z += Math::Random::Get<float>(-1, 1) * emitter.spawnRadius;
 
 					if (emitter.type == ParticleType::Rain) {
 						p.velocity = {0.0f, -15.0f, 0.0f};
 						p.color	   = {0.8f, 0.8f, 1.0f, 0.6f};
 					} else {
-						p.velocity = {RandomFloat() * 0.5f, -2.0f, RandomFloat() * 0.5f};
+						p.velocity = {Math::Random::Get<float>(-1, 1) * 0.5f, -2.0f, Math::Random::Get<float>(-1, 1) * 0.5f};
 						p.color	   = {1.0f, 1.0f, 1.0f, 0.9f};
 					}
 				} else if (emitter.type == ParticleType::Dust) {
-					float angle = RandomFloat() * 3.14159f * 2.0f;
+					float angle = Math::Random::Get<float>(-1, 1) * Math::PI * 2.0f;
 
-					float speed = 5.0f + (RandomFloat() * 3.0f);
+					float speed = 5.0f + (Math::Random::Get<float>(-1, 1) * 3.0f);
 
 					p.velocity.x = cosf(angle) * speed;
-					p.velocity.y = 0.1f + (RandomFloat() * 0.2f);
+					p.velocity.y = 0.1f + (Math::Random::Get<float>(-1, 1) * 0.2f);
 					p.velocity.z = sinf(angle) * speed;
 
-					p.position.x += (RandomFloat() * 0.5f);
-					p.position.z += (RandomFloat() * 0.5f);
+					p.position.x += (Math::Random::Get<float>(-1, 1) * 0.5f);
+					p.position.z += (Math::Random::Get<float>(-1, 1) * 0.5f);
 
 					p.color = {0.76f, 0.70f, 0.50f, 0.0f};
 
 					p.size	   = 2.0f;
-					p.rotation = RandomFloat() * 3.14f;
+					p.rotation = Math::Random::Get<float>(-1, 1) * Math::PI;
 				}
 				emitter.particles.push_back(p);
 			}

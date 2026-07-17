@@ -2,9 +2,11 @@
 
 #include <array>
 #include <cstdint>
+#include <format>
 #include <memory>
 #include <stack>
 #include <vector>
+#include <typeinfo>
 
 #include "ComponentArray.h"
 #include "ComponentType.h"
@@ -165,7 +167,8 @@ TComponent *ECSManager::GetTComponent(const EntityID entityID) {
 	const uint32_t idx	  = m_allComponentIndices[typeID * ref_config->maxEntityCount + entityID];
 
 	if (idx == UINT32_MAX) {
-		PE_LOG_FATAL("Entity doesn't have the component.");
+		PE_LOG_FATAL(std::format("Entity {} does not have the requested component: {}", entityID,
+					 typeid(TComponent).name()));
 		return nullptr;
 	}
 

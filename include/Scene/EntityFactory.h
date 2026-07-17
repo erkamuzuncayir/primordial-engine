@@ -6,7 +6,7 @@ namespace PE::Scene {
 class EntityFactory {
 public:
 	EntityFactory() = delete;
-	static ERROR_CODE				   Initialize(ECS::ECSManager *entityManager);
+	static ERROR_CODE				   Initialize(ECS::ECSManager *ecsManager);
 	static void						   Shutdown();
 	[[nodiscard]] static ECS::EntityID CreatePrimitive(Graphics::PrimitiveType type);
 

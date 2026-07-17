@@ -10,9 +10,9 @@
 #include "Scene/Components/Transform.h"
 
 namespace PE::Scene::Systems {
-ERROR_CODE DayNightSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager) {
+ERROR_CODE DayNightSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *ecsManager) {
 	m_stage = stage;
-	ref_eM	= entityManager;
+	ref_eM	= ecsManager;
 	return ERROR_CODE::OK;
 }
 

@@ -1,0 +1,53 @@
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-no-malloc,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-avoid-c-arrays,
+  misc-*,
+  -misc-non-private-member-variables-in-classes,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard,
+  performance-*,
+  readability-*,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity
+
+CheckOptions:
+  # Exceptions: Globally ignore naming rules for any identifier starting with "ref_"
+  readability-identifier-naming.DefaultIgnoredRegexp: "^ref_.*"
+  readability-identifier-naming.PrivateMemberIgnoredRegexp: "^ref_.*"
+
+  # Namespaces (e.g., AudioEngine::Core)
+  readability-identifier-naming.NamespaceCase: CamelCase
+
+  # Classes and Structs (e.g., RenderPipeline)
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+
+  # Functions (e.g., CalculateNormals)
+  readability-identifier-naming.FunctionCase: CamelCase
+
+  # Local Variables and Parameters (e.g., screenWidth, deltaTime)
+  readability-identifier-naming.VariableCase: camelBack
+  readability-identifier-naming.ParameterCase: camelBack
+
+  # Private/Protected Member Variables (e.g., m_frameCount, m_indexCount)
+  readability-identifier-naming.PrivateMemberPrefix: m_
+  readability-identifier-naming.PrivateMemberCase: camelBack
+  readability-identifier-naming.ProtectedMemberPrefix: m_
+  readability-identifier-naming.ProtectedMemberCase: camelBack
+
+  # Pointer Variables (e.g., pDevice, m_pTexture)
+  readability-identifier-naming.PointerPrefix: p
+
+  # Enums and Macros (e.g., TEXTURE_FILTER_NEAREST, MAX_ENTITIES)
+  readability-identifier-naming.EnumCase: UPPER_CASE
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE

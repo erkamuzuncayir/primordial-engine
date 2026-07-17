@@ -18,7 +18,7 @@ struct RenderConfig {
 	mutable uint8_t	 maxMsaaQuality			  = 0;
 	mutable uint16_t width					  = 1920;
 	mutable uint16_t height					  = 1080;
-	uint16_t		 maxCameraCount			  = 3;
+	uint16_t		 maxCameraCount			  = 4;
 	uint16_t		 maxDirectionalLightCount = 1;
 	uint32_t		 maxParticlesPerFrame	  = 50000;
 };

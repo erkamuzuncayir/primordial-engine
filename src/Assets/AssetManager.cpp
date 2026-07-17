@@ -13,6 +13,7 @@
 #include "Utilities/IOUtilities.h"
 
 namespace PE::Assets {
+static constexpr uint32_t MAX_ASSET_COUNT = 1024;
 #if PE_D3D11
 static inline const std::filesystem::path DefaultShaderVSPath =
 	Utilities::IOUtilities::GetDefaultAssetPath("DiffuseLighting_Forward_vs.cso");
@@ -47,6 +48,10 @@ static inline const std::filesystem::path DefaultShadowShaderVSPath =
 	Utilities::IOUtilities::GetDefaultAssetPath("Default_Shadow_vert.spv");
 static inline const std::filesystem::path DefaultShadowShaderPSPath =
 	Utilities::IOUtilities::GetDefaultAssetPath("Default_Shadow_frag.spv");
+static inline const std::filesystem::path DefaultSnowGlobeShaderVSPath =
+	Utilities::IOUtilities::GetDefaultAssetPath("SnowGlobe_vert.spv");
+static inline const std::filesystem::path DefaultSnowGlobeShaderPSPath =
+	Utilities::IOUtilities::GetDefaultAssetPath("SnowGlobe_frag.spv");
 #endif
 
 ERROR_CODE AssetManager::Initialize(Graphics::IRenderer *renderer, const Core::EngineConfig &engineConfig) {
@@ -54,8 +59,7 @@ ERROR_CODE AssetManager::Initialize(Graphics::IRenderer *renderer, const Core::E
 	s_state		 = SystemState::Initializing;
 	ref_renderer = renderer;
 
-	const size_t defaultAmount = engineConfig.maxComponentTypeCount;
-	ReserveMemory(defaultAmount, defaultAmount, defaultAmount, defaultAmount, defaultAmount);
+	ReserveMemory(MAX_ASSET_COUNT, MAX_ASSET_COUNT, MAX_ASSET_COUNT, MAX_ASSET_COUNT, MAX_ASSET_COUNT);
 
 	CreateDefaultRenderAssets();
 	PE_LOG_INFO("AssetManager initialized successfully.");
@@ -88,11 +92,15 @@ ERROR_CODE AssetManager::Shutdown() {
 }
 
 Graphics::TextureID AssetManager::RequestDefaultTexture(const Graphics::TextureType type) {
-	if (const auto handle = GetTextureHandle(s_defaultTextureNames[static_cast<Graphics::TextureID>(type)]);
-		Graphics::INVALID_HANDLE != handle)
-		return handle;
+	const size_t typeIndex = static_cast<size_t>(type);
+	if (typeIndex < s_defaultTextureNames.size()) {
+		if (const auto handle = GetTextureHandle(s_defaultTextureNames[typeIndex]);
+			Graphics::INVALID_HANDLE != handle) {
+			return handle;
+		}
+	}
 
-	PE_LOG_FATAL("Default texture can't found!");
+	PE_LOG_ERROR("Default texture not found or invalid texture type requested!");
 	return Graphics::INVALID_HANDLE;
 }
 
@@ -317,10 +325,12 @@ Graphics::MaterialID AssetManager::RequestMaterial(
 }
 
 Graphics::MaterialID AssetManager::RequestMaterial(const Scene::MaterialConfigBuilder &builder) {
-	if (const uint32_t handle = GetMaterialHandle(builder.name); Graphics::INVALID_HANDLE != handle) return handle;
+	if (const uint32_t handle = GetMaterialHandle(builder.name); Graphics::INVALID_HANDLE != handle)
+		return handle;
 
 	const Graphics::ShaderID shaderID = GetShaderHandle(builder.shaderName);
-	if (shaderID == Graphics::INVALID_HANDLE) return Graphics::INVALID_HANDLE;
+	if (shaderID == Graphics::INVALID_HANDLE)
+		return Graphics::INVALID_HANDLE;
 
 	const Graphics::MaterialID matID = ref_renderer->CreateMaterial(shaderID);
 	if (matID != Graphics::INVALID_HANDLE) {
@@ -515,12 +525,14 @@ void AssetManager::CreateDefaultShaders() {
 								  DefaultUnlitShaderPSPath);
 	DefaultShaderID =
 		RequestShader(DefaultShaderName.data(), Graphics::ShaderType::Lit, DefaultShaderVSPath, DefaultShaderPSPath);
-	DefaultUnlitShaderID	= RequestShader(DefaultUnlitShaderName.data(), Graphics::ShaderType::Unlit,
-											DefaultUnlitShaderVSPath, DefaultUnlitShaderPSPath);
-	DefaultShadowShaderID	= RequestShader(DefaultShadowShaderName.data(), Graphics::ShaderType::Shadow,
-											DefaultShadowShaderVSPath, DefaultShadowShaderPSPath);
-	DefaultParticleShaderID = RequestShader(DefaultParticleShaderName.data(), Graphics::ShaderType::Particle,
-											DefaultParticleShaderVSPath, DefaultParticleShaderPSPath);
+	DefaultUnlitShaderID	 = RequestShader(DefaultUnlitShaderName.data(), Graphics::ShaderType::Unlit,
+											 DefaultUnlitShaderVSPath, DefaultUnlitShaderPSPath);
+	DefaultShadowShaderID	 = RequestShader(DefaultShadowShaderName.data(), Graphics::ShaderType::Shadow,
+											 DefaultShadowShaderVSPath, DefaultShadowShaderPSPath);
+	DefaultParticleShaderID	 = RequestShader(DefaultParticleShaderName.data(), Graphics::ShaderType::Particle,
+											 DefaultParticleShaderVSPath, DefaultParticleShaderPSPath);
+	DefaultSnowGlobeShaderID = RequestShader(DefaultSnowGlobeShaderName.data(), Graphics::ShaderType::SnowGlobe,
+											 DefaultSnowGlobeShaderVSPath, DefaultSnowGlobeShaderPSPath);
 }
 
 void AssetManager::CreateDefaultMaterials() {
@@ -530,7 +542,33 @@ void AssetManager::CreateDefaultMaterials() {
 
 void AssetManager::CreateDefaultMeshes() {
 	Graphics::MeshData meshData;
+	Graphics::GeometryGenerator::CreateBox(1.0, 1.0, 1.0, meshData);
+	DefaultBoxID = RequestMesh(DefaultBoxName.data(), meshData);
+	meshData.Indices.clear();
+	meshData.Vertices.clear();
+	Graphics::GeometryGenerator::CreateCapsule(0.5, 1.0, 32, 10, meshData);
+	DefaultCapsuleID = RequestMesh(DefaultCapsuleName.data(), meshData);
+	meshData.Indices.clear();
+	meshData.Vertices.clear();
+	Graphics::GeometryGenerator::CreateCylinder(0.5, 0.5, 1.0, 32, 10, meshData);
+	DefaultCylinderID = RequestMesh(DefaultCylinderName.data(), meshData);
+	meshData.Indices.clear();
+	meshData.Vertices.clear();
+	Graphics::GeometryGenerator::CreateGeosphere(0.5, 16.0, meshData);
+	DefaultGeosphereID = RequestMesh(DefaultGeosphereName.data(), meshData);
+	meshData.Indices.clear();
+	meshData.Vertices.clear();
+	Graphics::GeometryGenerator::CreateGrid(1.0, 1.0, 2, 2, meshData);
+	DefaultGridID = RequestMesh(DefaultGridName.data(), meshData);
+	meshData.Indices.clear();
+	meshData.Vertices.clear();
 	Graphics::GeometryGenerator::CreateQuad(1.0, 1.0, meshData);
 	DefaultQuadID = RequestMesh(DefaultQuadName.data(), meshData);
+	meshData.Indices.clear();
+	meshData.Vertices.clear();
+	Graphics::GeometryGenerator::CreateSphere(0.5, 32.0, 32.0, meshData);
+	DefaultSphereID = RequestMesh(DefaultSphereName.data(), meshData);
+	meshData.Indices.clear();
+	meshData.Vertices.clear();
 }
 }  // namespace PE::Assets

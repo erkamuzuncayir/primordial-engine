@@ -9,7 +9,7 @@ public:
 	DayNightSystem()		   = default;
 	~DayNightSystem() override = default;
 
-	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager);
+	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *ecsManager);
 	ERROR_CODE Shutdown() override;
 	void	   OnUpdate(float dt) override;
 	void	   IncreaseCycleDayDuration() const;

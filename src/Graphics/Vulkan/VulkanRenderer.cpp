@@ -1081,37 +1081,32 @@ ERROR_CODE VulkanRenderer::CreateGlobalTextureSamplers() {
 		return vkCreateSampler(ref_device->GetVkDevice(), &info, nullptr, &m_globalSamplers[static_cast<size_t>(type)]);
 	};
 
-	// 1. Linear Repeat
 	if (Create(SamplerType::LinearRepeat, VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_REPEAT) != VK_SUCCESS) {
 		PE_LOG_FATAL("Failed to create LinearRepeat Sampler!");
 		return ERROR_CODE::VULKAN_SAMPLER_CREATION_FAILED;
 	}
 
-	// 2. Linear Clamp
 	if (Create(SamplerType::LinearClamp, VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE) != VK_SUCCESS) {
 		PE_LOG_FATAL("Failed to create LinearClamp Sampler!");
 		return ERROR_CODE::VULKAN_SAMPLER_CREATION_FAILED;
 	}
 
-	// 3. Point Repeat
 	if (Create(SamplerType::PointRepeat, VK_FILTER_NEAREST, VK_SAMPLER_ADDRESS_MODE_REPEAT) != VK_SUCCESS) {
 		PE_LOG_FATAL("Failed to create PointRepeat Sampler!");
 		return ERROR_CODE::VULKAN_SAMPLER_CREATION_FAILED;
 	}
 
-	// 4. Point Clamp
 	if (Create(SamplerType::PointClamp, VK_FILTER_NEAREST, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE) != VK_SUCCESS) {
 		PE_LOG_FATAL("Failed to create PointClamp Sampler!");
 		return ERROR_CODE::VULKAN_SAMPLER_CREATION_FAILED;
 	}
 
-	// 5. Anisotropic
 	if (Create(SamplerType::Anisotropic, VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_REPEAT, true) != VK_SUCCESS) {
 		PE_LOG_FATAL("Failed to create Anisotropic Sampler!");
 		return ERROR_CODE::VULKAN_SAMPLER_CREATION_FAILED;
 	}
 
-	// --- 6. Shadow PCF ---
+	// Shadow PCF
 	info.anisotropyEnable		 = VK_FALSE;
 	info.maxAnisotropy			 = 1.0f;
 	info.mipLodBias				 = 0.0f;
@@ -1328,21 +1323,17 @@ ERROR_CODE VulkanRenderer::CreateShadowPipeline() {
 ERROR_CODE VulkanRenderer::CreateParticleResources() {
 	VkDevice device = ref_device->GetVkDevice();
 
-	// 1. Create Instance Buffers (Double Buffered for Frame-in-Flight)
 	m_particleInstanceBuffers.resize(ref_renderConfig->maxFramesInFlight);
 	VkDeviceSize bufferSize = ref_renderConfig->maxParticlesPerFrame * sizeof(GPUInstanceData);
 
 	for (int i = 0; i < ref_renderConfig->maxFramesInFlight; i++) {
 		m_particleInstanceBuffers[i] = new VulkanBuffer();
-		// VERTEX_BUFFER_BIT is critical because we bind this as an Instanced Vertex Buffer
 		m_particleInstanceBuffers[i]->Initialize(
 			device, ref_device->GetVkPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 			VK_SHARING_MODE_EXCLUSIVE, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		m_particleInstanceBuffers[i]->Map();
 	}
 
-	// 2. Create Descriptor Layout (Set 1: Single Texture Sampler)
-	// Set 0 is "PerPass" (Camera/Global), which we reuse from standard pipeline.
 	VkDescriptorSetLayoutBinding samplerBinding{};
 	samplerBinding.binding		   = 0;
 	samplerBinding.descriptorCount = 1;
@@ -1356,7 +1347,6 @@ ERROR_CODE VulkanRenderer::CreateParticleResources() {
 	if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_particleSetLayout) != VK_SUCCESS)
 		return ERROR_CODE::VULKAN_PIPELINE_CREATION_FAILED;
 
-	// 3. Create Pipeline Layout (Set 0 + Set 1)
 	VkDescriptorSetLayout layouts[] = {m_perPassSetLayout, m_particleSetLayout};
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
@@ -1370,10 +1360,8 @@ ERROR_CODE VulkanRenderer::CreateParticleResources() {
 }
 
 ERROR_CODE VulkanRenderer::CreateParticlePipeline() {
-	// 1. Load Shaders (Ensure these files exist in your assets folder!)
 	VulkanShader &particleShader = m_shaders.Get(Assets::AssetManager::DefaultParticleShaderID);
 
-	// 2. Define Vertex Input (The Critical Part)
 	const std::vector bindings({Vertex::GetBindingDescription(), GPUInstanceData::GetBindingDescription()});
 
 	std::vector<VkVertexInputAttributeDescription> attribs;
@@ -1383,19 +1371,17 @@ ERROR_CODE VulkanRenderer::CreateParticlePipeline() {
 	for (auto &vertDesc : vertexParticleAttribs) attribs.push_back(vertDesc);
 	for (auto &instDesc : instanceDataAttribs) attribs.push_back(instDesc);
 
-	// 3. Pipeline Config
 	PipelineDescription desc;
-	desc.enableBlend	  = true;	// Particles need blending!
-	desc.enableDepthWrite = false;	// Soft particles: Don't write depth, but DO test depth
+	desc.enableBlend	  = true;
+	desc.enableDepthWrite = false;
 	desc.enableDepthTest  = true;
 	desc.enableDepthBias  = false;
-	desc.cullMode		  = VK_CULL_MODE_NONE;	// View-aligned quads can be finicky, safer to disable cull
+	desc.cullMode		  = VK_CULL_MODE_NONE;
 	desc.colorFormat	  = m_swapChain->GetImageFormat();
 	desc.depthFormat	  = m_depthTexture.format;
 	desc.wireframe		  = false;
 
 	m_particlePipeline = new VulkanPipeline();
-	// Use the Custom Overload you wrote
 	m_particlePipeline->Initialize(ref_device, particleShader, m_particlePipelineLayout, m_swapChain->GetExtent(), desc,
 								   bindings, attribs);
 
@@ -1407,9 +1393,9 @@ ERROR_CODE VulkanRenderer::CreateVertexBuffer() {
 	VkBufferUsageFlags usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 	auto result = m_vertexBuffer->Initialize(ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(),
-											 MAX_VERTEX_BUFFER_SIZE,  // 50MB sabit boyut
+											 MAX_VERTEX_BUFFER_SIZE,
 											 usage, VK_SHARING_MODE_EXCLUSIVE,
-											 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT  // GPU tarafında allocate ediyoruz
+											 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
 
 	if (result < ERROR_CODE::WARN_START) {
@@ -1428,9 +1414,9 @@ ERROR_CODE VulkanRenderer::CreateIndexBuffer() {
 	VkBufferUsageFlags usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 	auto result = m_indexBuffer->Initialize(ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(),
-											MAX_VERTEX_BUFFER_SIZE,	 // 50MB sabit boyut
+											MAX_VERTEX_BUFFER_SIZE,
 											usage, VK_SHARING_MODE_EXCLUSIVE,
-											VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT	 // GPU tarafında allocate ediyoruz
+											VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
 
 	if (result < ERROR_CODE::WARN_START) {
@@ -1445,8 +1431,6 @@ ERROR_CODE VulkanRenderer::CreateIndexBuffer() {
 }
 
 ERROR_CODE VulkanRenderer::CreateUniformBuffers(const uint32_t maxModelCount) {
-	// Resize vectors to match frames in flight (defined in your Config or Constants)
-	// Assuming ref_renderConfig.maxFramesInFlight is e.g., 2
 	m_perPassBuffers.resize(ref_renderConfig->maxFramesInFlight);
 	m_perObjectBuffers.resize(ref_renderConfig->maxFramesInFlight);
 
@@ -1455,26 +1439,21 @@ ERROR_CODE VulkanRenderer::CreateUniformBuffers(const uint32_t maxModelCount) {
 	// Calculate dynamic alignment for Object Buffer
 	VkPhysicalDeviceProperties properties{};
 	vkGetPhysicalDeviceProperties(ref_device->GetVkPhysicalDevice(), &properties);
-	VkDeviceSize minAlignment = properties.limits.minUniformBufferOffsetAlignment;
+	const VkDeviceSize minAlignment = properties.limits.minUniformBufferOffsetAlignment;
 
 	m_dynamicAlignment = sizeof(CBPerObject);
 
-	// Round up to the next multiple of minAlignment
-	if (minAlignment > 0) {
-		m_dynamicAlignment = (m_dynamicAlignment + minAlignment - 1) & ~(minAlignment - 1);
-	}
+	if (minAlignment > 0) m_dynamicAlignment = (m_dynamicAlignment + minAlignment - 1) & ~(minAlignment - 1);
 
-	// Allocate enough size for MAX_OBJECTS (e.g., 10,000) * Aligned Size
-	VkDeviceSize objectBufferSize = m_dynamicAlignment * maxModelCount;
+	const VkDeviceSize objectBufferSize = m_dynamicAlignment * maxModelCount;
 
 	for (int i = 0; i < ref_renderConfig->maxFramesInFlight; i++) {
-		// 1. Create Global Buffer (Set 0)
 		m_perPassBuffers[i] = new VulkanBuffer();
 		ERROR_CODE result	= m_perPassBuffers[i]->Initialize(
 			ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(), globalSize,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_SHARING_MODE_EXCLUSIVE,													// Standard mode
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT	// Coherent = no need to Flush()
+			VK_SHARING_MODE_EXCLUSIVE,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		);
 		if (result < ERROR_CODE::WARN_START) {
 			Utilities::SafeShutdown(m_perPassBuffers[i]);
@@ -1484,7 +1463,6 @@ ERROR_CODE VulkanRenderer::CreateUniformBuffers(const uint32_t maxModelCount) {
 
 		m_perPassBuffers[i]->Map();
 
-		// 2. Create Object Buffer (Set 1)
 		m_perObjectBuffers[i] = new VulkanBuffer();
 		result				  = m_perObjectBuffers[i]->Initialize(
 			ref_device->GetVkDevice(), ref_device->GetVkPhysicalDevice(), objectBufferSize,
@@ -1503,11 +1481,10 @@ ERROR_CODE VulkanRenderer::CreateUniformBuffers(const uint32_t maxModelCount) {
 }
 
 ERROR_CODE VulkanRenderer::CreateDescriptorPool() {
-	uint32_t maxFrames = static_cast<uint32_t>(ref_renderConfig->maxFramesInFlight);
-	// Arbitrary limit for materials (e.g., 1000 materials)
-	uint32_t maxMaterials = ref_renderConfig->maxMaterialCount;
+	const uint32_t maxFrames    = ref_renderConfig->maxFramesInFlight;
+	const uint32_t maxMaterials = ref_renderConfig->maxMaterialCount;
 
-	std::vector<VkDescriptorPoolSize> poolSizes = {
+	const std::vector<VkDescriptorPoolSize> poolSizes = {
 		{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, maxFrames + maxMaterials},
 		{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, maxFrames},
 		{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, (maxMaterials * 8) + maxFrames}};
@@ -1515,7 +1492,7 @@ ERROR_CODE VulkanRenderer::CreateDescriptorPool() {
 	VkDescriptorPoolCreateInfo poolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
 	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 	poolInfo.pPoolSizes	   = poolSizes.data();
-	// Max Sets = Frames (Set 0) + Frames (Set 1) + Materials (Set 2)
+	// TODO: Remove literal '50' in here!
 	poolInfo.maxSets = (maxFrames * 2) + maxMaterials + 50;
 
 	if (vkCreateDescriptorPool(ref_device->GetVkDevice(), &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS) {
@@ -1533,27 +1510,21 @@ ERROR_CODE VulkanRenderer::CreateDescriptorSets() {
 	m_perPassDescriptorSets.resize(frames);
 	m_perObjectDescriptorSets.resize(frames);
 
-	VkDevice device = ref_device->GetVkDevice();
+	const VkDevice device = ref_device->GetVkDevice();
 
 	// Loop through each frame-in-flight to allocate its specific sets
 	for (uint32_t i = 0; i < frames; i++) {
-		// =============================================================
-		// 1. ALLOCATE SET 0 (Global / Per Pass)
-		// =============================================================
-		VkDescriptorSetAllocateInfo passAllocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-		passAllocInfo.descriptorPool	 = m_descriptorPool;
-		passAllocInfo.descriptorSetCount = 1;
-		passAllocInfo.pSetLayouts		 = &m_perPassSetLayout;
+		VkDescriptorSetAllocateInfo perPassAllocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+		perPassAllocInfo.descriptorPool	 = m_descriptorPool;
+		perPassAllocInfo.descriptorSetCount = 1;
+		perPassAllocInfo.pSetLayouts		 = &m_perPassSetLayout;
 
-		if (vkAllocateDescriptorSets(device, &passAllocInfo, &m_perPassDescriptorSets[i]) != VK_SUCCESS) {
+		if (vkAllocateDescriptorSets(device, &perPassAllocInfo, &m_perPassDescriptorSets[i]) != VK_SUCCESS) {
 			PE_LOG_FATAL("Failed to allocate Per-Pass Descriptor Set!");
 			return ERROR_CODE::VULKAN_PIPELINE_CREATION_FAILED;
 		}
 
-		// 2. WRITE TO SET 0 (Binding 0 + Binding 1)
 		std::array<VkWriteDescriptorSet, 2> passWrites{};
-
-		// Binding 0: Uniform Buffer
 		VkDescriptorBufferInfo perPassBufferInfo{};
 		perPassBufferInfo.buffer = m_perPassBuffers[i]->GetBuffer();
 		perPassBufferInfo.offset = 0;
@@ -1566,25 +1537,20 @@ ERROR_CODE VulkanRenderer::CreateDescriptorSets() {
 		passWrites[0].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		passWrites[0].pBufferInfo	  = &perPassBufferInfo;
 
-		// Binding 1: Shadow Map Texture (YENİ)
 		VkDescriptorImageInfo shadowImageInfo{};
-		shadowImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;	 // Shader okuyacak
+		shadowImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		shadowImageInfo.imageView	= m_shadowMap.texture.imageView;
 		shadowImageInfo.sampler		= m_globalSamplers[static_cast<size_t>(SamplerType::ShadowPCF)];
 
 		passWrites[1].sType			  = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		passWrites[1].dstSet		  = m_perPassDescriptorSets[i];
-		passWrites[1].dstBinding	  = 1;	// Binding 1
+		passWrites[1].dstBinding	  = 1;
 		passWrites[1].descriptorCount = 1;
 		passWrites[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		passWrites[1].pImageInfo	  = &shadowImageInfo;
 
-		// Update both bindings at once
 		vkUpdateDescriptorSets(device, 2, passWrites.data(), 0, nullptr);
 
-		// =============================================================
-		// 3. ALLOCATE SET 1 (Per Object - Dynamic)
-		// =============================================================
 		VkDescriptorSetAllocateInfo objAllocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
 		objAllocInfo.descriptorPool		= m_descriptorPool;
 		objAllocInfo.descriptorSetCount = 1;
@@ -1595,12 +1561,6 @@ ERROR_CODE VulkanRenderer::CreateDescriptorSets() {
 			return ERROR_CODE::VULKAN_PIPELINE_CREATION_FAILED;
 		}
 
-		// =============================================================
-		// 4. WRITE TO SET 1
-		// =============================================================
-		// Note: For Dynamic Buffers, we point to the BASE of the buffer (offset 0).
-		// The 'range' is the size of ONE instance of the struct (aligned is safer, but sizeof works usually).
-		// The dynamic offset applied in vkCmdBindDescriptorSets will shift this window.
 		VkDescriptorBufferInfo perObjBufferInfo{};
 		perObjBufferInfo.buffer = m_perObjectBuffers[i]->GetBuffer();
 		perObjBufferInfo.offset = 0;
@@ -1610,7 +1570,6 @@ ERROR_CODE VulkanRenderer::CreateDescriptorSets() {
 		objWrite.dstSet			 = m_perObjectDescriptorSets[i];
 		objWrite.dstBinding		 = 0;
 		objWrite.dstArrayElement = 0;
-		// CRITICAL: Must match layout (DYNAMIC)
 		objWrite.descriptorType	 = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 		objWrite.descriptorCount = 1;
 		objWrite.pBufferInfo	 = &perObjBufferInfo;

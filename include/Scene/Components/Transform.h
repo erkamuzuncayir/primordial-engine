@@ -3,10 +3,10 @@
 
 namespace PE::Scene::Components {
 struct Transform {
-	enum class TransformState : uint8_t { Clean, Dirty, Updated };
+	enum class TransformState : uint8_t { Clean, Dirty, Sync, Updated };
 
 	Math::Vec3 position{0.0f, 0.0f, 0.0f};
-	Math::Vec3 rotation{0.0f, 0.0f, 0.0f};
+	Math::Quat orientation{1.0f, 0.0f, 0.0f, 0.0f};
 	Math::Vec3 scale{1.0f, 1.0f, 1.0f};
 
 	Math::Mat44 localMatrix{Math::Mat44Identity()};

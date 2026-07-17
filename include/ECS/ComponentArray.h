@@ -112,31 +112,32 @@ void ComponentArray<T>::Remove(const uint32_t entityID) {
 }
 
 template <typename T>
-bool ComponentArray<T>::Has(uint32_t entityID) const {
+bool ComponentArray<T>::Has(const uint32_t entityID) const {
 	return entityID < m_reverse.size() && m_reverse[entityID] != UINT32_MAX && m_reverse[entityID] < m_data.size();
 }
 
 template <typename T>
-T &ComponentArray<T>::Get(uint32_t entityID) {
+T &ComponentArray<T>::Get(const uint32_t entityID) {
 	if (entityID >= m_reverse.size()) PE_LOG_FATAL("Entity ID can't bigger than reverse vector size!");
 
 	uint32_t packed = m_reverse[entityID];
-	assert(packed != UINT32_MAX);
-	assert(packed < m_data.size());
+	if (packed == UINT32_MAX || packed >= m_data.size()) PE_LOG_FATAL("Memory Overflow!");
+
 	return m_data[packed];
 }
 
 template <typename T>
-const T &ComponentArray<T>::Get(uint32_t entityID) const {
-	assert(entityID < m_reverse.size());
+const T &ComponentArray<T>::Get(const uint32_t entityID) const {
+	if (entityID >= m_reverse.size()) PE_LOG_FATAL("Entity ID can't bigger than reverse vector size!");
 	uint32_t packed = m_reverse[entityID];
-	assert(packed != UINT32_MAX);
-	assert(packed < m_data.size());
+
+	if (packed == UINT32_MAX || packed >= m_data.size()) PE_LOG_FATAL("Memory Overflow!");
+
 	return m_data[packed];
 }
 
 template <typename T>
-void ComponentArray<T>::EnsureReverseCapacity(uint32_t entityID) {
+void ComponentArray<T>::EnsureReverseCapacity(const uint32_t entityID) {
 	if (entityID >= m_reverse.size()) {
 		size_t old = m_reverse.size();
 		m_reverse.resize(entityID + 1, UINT32_MAX);

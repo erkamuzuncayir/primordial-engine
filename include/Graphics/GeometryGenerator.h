@@ -28,6 +28,13 @@ public:
 	static void CreateGeosphere(float radius, uint32_t numSubdivisions, MeshData &meshData);
 
 	///< summary>
+	/// Creates a capsule (a cylinder with hemispherical ends) centered at the origin.
+	/// The height parameter dictates the length of the cylindrical segment between the two caps.
+	/// The slices and stacks parameters control the degree of tessellation.
+	///</summary>
+	static void CreateCapsule(float radius, float height, uint32_t sliceCount, uint32_t stackCount, MeshData &meshData);
+
+	///< summary>
 	/// Creates a cylinder parallel to the y-axis, and centered about the origin.
 	/// The bottom and top radius can vary to form various cone shapes rather than true
 	/// cylinders. The slices and stacks parameters control the degree of tessellation.

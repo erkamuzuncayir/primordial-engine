@@ -16,7 +16,7 @@ public:
 	RenderSystem &operator=(RenderSystem &&)	  = delete;
 	~RenderSystem() override					  = default;
 
-	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager, CameraSystem *cameraSystem,
+	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *ecsManager, CameraSystem *cameraSystem,
 						  GLFWwindow *window, Core::EngineConfig &config);
 	ERROR_CODE Shutdown() override;
 

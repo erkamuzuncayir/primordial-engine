@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <string>
 #include <vector>
 
@@ -6,6 +7,7 @@
 #include "ECS/ECSManager.h"
 #include "Graphics/IRenderer.h"
 #include "Graphics/RenderConfig.h"
+#include "Physics/Body/Types.h"
 
 namespace PE::Scene {
 struct TextureConfigBuilder {
@@ -69,6 +71,7 @@ private:
 		Shader,
 		Material,
 		Mesh,
+		MaterialInteraction,
 		Entity,
 		Tag,
 		Transform,
@@ -77,6 +80,33 @@ private:
 		MeshRenderer,
 		ParticleEmitter,
 		DayNightCycle,
+		AABB,
+		RigidBody,
+		KinematicBody,
+		StaticEntity,
+		BoxCollider,
+		SphereCollider,
+		CapsuleCollider,
+		CylinderCollider,
+		Aero,
+		AeroControl,
+		AngledAero,
+		BodyDrag,
+		BodyBuoyancy,
+		BodySpring,
+		BodyAnchoredSpring,
+		BodyAnchoredBungee,
+		PhysicsMaterial,
+		PointMass,
+		ParticleDrag,
+		ParticleBuoyancy,
+		ParticleSpring,
+		ParticleAnchoredSpring,
+		ParticleAnchoredBungee,
+		CableConstraint,
+		RodConstraint,
+		Spawner,
+		WaypointAnimation,
 	};
 
 	std::vector<std::string> SplitString(const std::string &str);
@@ -86,11 +116,14 @@ private:
 	float					 ParseFloat(const std::string &value);
 	int						 ParseInt(const std::string &value);
 	bool					 ParseBool(const std::string &value);
+	Math::FloatRange		 ParseFloatRange(const std::string &value);
+	Math::Vec3Range			 ParseVec3Range(const std::string &value);
 
 	void HandleTextureKey(const std::string &key, const std::string &value);
 	void HandleShaderKey(const std::string &key, const std::string &value);
 	void HandleMaterialKey(const std::string &key, const std::string &value);
 	void HandleMeshKey(const std::string &key, const std::string &value);
+	void HandleMaterialInteractionKey(const std::string &key, const std::string &value);
 	void HandleEntityKey(const std::string &key, const std::string &value);
 	void HandleTagKey(const std::string &key, const std::string &value);
 	void HandleTransformKey(const std::string &key, const std::string &value);
@@ -99,13 +132,41 @@ private:
 	void HandleMeshRendererKey(const std::string &key, const std::string &value);
 	void HandleParticleEmitterKey(const std::string &key, const std::string &value);
 	void HandleDayNightCycleKey(const std::string &key, const std::string &value);
+	void HandleAABBKey(const std::string &key, const std::string &value);
+	void HandleRigidBodyKey(const std::string &key, const std::string &value);
+	void HandleKinematicBodyKey(const std::string &key, const std::string &value);
+	void HandleBoxColliderKey(const std::string &key, const std::string &value);
+	void HandleSphereColliderKey(const std::string &key, const std::string &value);
+	void HandleCapsuleColliderKey(const std::string &key, const std::string &value);
+	void HandleCylinderColliderKey(const std::string &key, const std::string &value);
+	void HandleAeroKey(const std::string &key, const std::string &value);
+	void HandleAeroControlKey(const std::string &key, const std::string &value);
+	void HandleAngledAeroKey(const std::string &key, const std::string &value);
+	void HandleBodyDragKey(const std::string &key, const std::string &value);
+	void HandleBodyBuoyancyKey(const std::string &key, const std::string &value);
+	void HandleBodySpringKey(const std::string &key, const std::string &value);
+	void HandleBodyAnchoredSpringKey(const std::string &key, const std::string &value);
+	void HandleBodyAnchoredBungeeKey(const std::string &key, const std::string &value);
+	void HandlePhysicsMaterialKey(const std::string &key, const std::string &value);
+	void HandlePointMassKey(const std::string &key, const std::string &value);
+	void HandleParticleDragKey(const std::string &key, const std::string &value);
+	void HandleParticleBuoyancyKey(const std::string &key, const std::string &value);
+	void HandleParticleSpringKey(const std::string &key, const std::string &value);
+	void HandleParticleAnchoredSpringKey(const std::string &key, const std::string &value);
+	void HandleParticleAnchoredBungeeKey(const std::string &key, const std::string &value);
+	void HandleCableConstraintKey(const std::string &key, const std::string &value);
+	void HandleRodConstraintKey(const std::string &key, const std::string &value);
+	void HandleSpawnerKey(const std::string &key, const std::string &value);
+	void HandleWaypointAnimationKey(const std::string &key, const std::string &value);
 
 	void FinalizeTexture();
 	void FinalizeShader();
 	void FinalizeMesh();
 	void FinalizeMaterial();
+	void FinalizeMaterialInteraction();
 	void FinalizeHierarchy();
 	void FinalizeDayNightCycle();
+	void FinalizeLinks();
 
 	ECS::ECSManager				 *ref_eM	   = nullptr;
 	const Graphics::RenderConfig *ref_config   = nullptr;
@@ -123,5 +184,18 @@ private:
 
 	std::vector<std::pair<ECS::EntityID, std::string>> m_deferredParents;
 	std::vector<DayNightLink>						   m_deferredDayNightLinks;
+
+	struct DeferredGenericLink {
+		ECS::EntityID sourceEntity;
+		std::string   targetName1;
+		std::string   targetName2;
+		int			  linkType;
+	};
+	std::vector<DeferredGenericLink> m_deferredLinks;
+
+	Physics::Body::MaterialInteraction                                          m_matInteractionBuilder{};
+	uint32_t                                                                    m_interactionMat1 = 0;
+	uint32_t                                                                    m_interactionMat2 = 0;
+	std::map<std::pair<uint32_t, uint32_t>, Physics::Body::MaterialInteraction> m_materialInteractions;
 };
 }  // namespace PE::Scene

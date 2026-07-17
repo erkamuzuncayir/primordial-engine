@@ -1,11 +1,12 @@
 #pragma once
 
-#include <cfloat>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/norm.hpp>
+
+#include "glm/gtx/quaternion.hpp"
 
 // Those defined in CMakeLists.txt
 // GLM_FORCE_LEFT_HANDED
@@ -32,7 +33,18 @@ static const Vec3 Vec3Up	  = Vec3(0.0f, 1.0f, 0.0f);
 static const Vec3 Vec3Right	  = Vec3(1.0f, 0.0f, 0.0f);
 static const Vec3 Vec3Forward = Vec3(0.0f, 0.0f, 1.0f);
 
-inline Mat44 Mat44Identity() { return Mat44(1.0f); }
+inline Mat44 Mat44Identity() { return {1.0f}; }
+
+struct FloatRange {
+	float min;
+	float max;
+};
+
+struct Vec3Range {
+	Vec3 min;
+	Vec3 max;
+};
+
 // ============================================================================
 // 2. PHYSICS MATH TYPES (Toggled Precision - 'R' Prefix)
 // ============================================================================
@@ -45,7 +57,6 @@ using RMat33 = glm::dmat3;
 using RMat44 = glm::dmat4;
 using RQuat	 = glm::dquat;
 
-static constexpr real RInfinity = DBL_MAX;
 #else
 using real	 = float;
 using RVec2	 = glm::vec2;
@@ -55,14 +66,15 @@ using RMat33 = glm::mat3;
 using RMat44 = glm::mat4;
 using RQuat	 = glm::quat;
 
-static constexpr real RInfinity = FLT_MAX;
 #endif
 
-static constexpr real RPI  = static_cast<real>(3.14159265358979323846);
-static constexpr real RTAU = static_cast<real>(2.0) * RPI;
+constexpr real RMax		= std::numeric_limits<real>::max();
+constexpr real REpsilon = std::numeric_limits<real>::epsilon();
+constexpr real RPI		= std::numbers::pi_v<real>;
+constexpr real RTAU		= RPI * static_cast<real>(2.0);
 
-static const RVec3 RVec3Zero	= RVec3(static_cast<real>(0.0));
-static const RVec3 RVec3One		= RVec3(static_cast<real>(1.0));
+static const RVec3 RVec3Zero	= RVec3(0.0);
+static const RVec3 RVec3One		= RVec3(1.0);
 static const RVec3 RVec3Up		= RVec3(static_cast<real>(0.0), static_cast<real>(1.0), static_cast<real>(0.0));
 static const RVec3 RVec3Right	= RVec3(static_cast<real>(1.0), static_cast<real>(0.0), static_cast<real>(0.0));
 static const RVec3 RVec3Forward = RVec3(static_cast<real>(0.0), static_cast<real>(0.0), static_cast<real>(1.0));
@@ -86,6 +98,16 @@ auto Degrees(const T &val) {
 template <typename T>
 auto Abs(const T &val) {
 	return glm::abs(val);
+}
+
+template <typename T>
+auto Sqrt(const T &val) {
+	return glm::sqrt(val);
+}
+
+template <typename T>
+auto Pow(const T &base, const T &exponent) {
+	return glm::pow(base, exponent);
 }
 
 template <typename VecT>
@@ -118,6 +140,24 @@ auto LengthSq(const VecT &x) {
 	return glm::length2(x);
 }
 
+template <typename MatT, typename Scalar>
+auto Mix(const MatT &x, const MatT &y, const Scalar &a) {
+	return x * (1.0f - a) + y * a;
+}
+
+// --- Quaternion Operations ---
+inline Vec3 QuatToEuler(const Quat &q) { return glm::eulerAngles(q); }
+
+inline RVec3 RQuatToREuler(const RQuat &q) { return glm::eulerAngles(q); }
+
+inline Quat EulerToQuat(const Vec3 &v) { return glm::quat(v); }
+
+inline Quat REulerToRQuat(const RVec3 &v) { return glm::quat(v); }
+
+inline Quat RotationBetweenVectors(const Vec3 &start, const Vec3 &dest) {
+	return glm::rotation(Normalize(start), Normalize(dest));
+}
+
 // --- Matrix Operations ---
 template <typename MatT>
 auto Transpose(const MatT &m) {
@@ -133,7 +173,7 @@ template <typename MatT>
 MatT InverseTranspose(const MatT &M) {
 	MatT A		 = M;
 	using Scalar = MatT::value_type;
-	A[3]		 = glm::vec<4, Scalar, glm::defaultp>(0, 0, 0, 1);
+	A[3]		 = glm::vec<4, Scalar>(0, 0, 0, 1);
 	return glm::transpose(glm::inverse(A));
 }
 
@@ -142,15 +182,27 @@ auto Translate(const MatT &m, const VecT &v) {
 	return glm::translate(m, v);
 }
 
-template <typename MatT, typename Scalar, typename VecT>
-auto Rotate(const MatT &m, const Scalar angle, const VecT &axis) {
+template <typename Scalar, typename VecT>
+auto Rotate(const RMat44 &m, const Scalar angle, const VecT &axis) {
 	return glm::rotate(m, angle, axis);
+}
+
+template <typename Scalar, typename VecT>
+auto Rotate(const RQuat &q, const Scalar angle, const VecT &axis) {
+	return glm::rotate(q, angle, axis);
 }
 
 template <typename MatT, typename VecT>
 auto Scale(const MatT &m, const VecT &v) {
 	return glm::scale(m, v);
 }
+
+static RMat33 SkewSymmetric(const RVec3 &v) { return {0.0f, v.z, -v.y, -v.z, 0.0f, v.x, v.y, -v.x, 0.0f}; }
+
+// --- Quaternion ---
+inline RMat33 QuatToRMat33(const RQuat q) { return glm::mat3_cast(q); }
+
+inline RQuat Conjugate(const RQuat q) { return glm::conjugate(q); }
 
 // --- Camera & Projection Matrices ---
 template <typename Scalar>
@@ -169,52 +221,20 @@ auto Mat4LookAt(const VecT &eye, const VecT &center, const VecT &up) {
 }
 
 // --- Direction Vectors ---
-template <typename VecT>
 struct DirectionVectors {
-	VecT Right;
-	VecT Up;
-	VecT Forward;
+	Vec3 Right;
+	Vec3 Up;
+	Vec3 Forward;
 };
 
-template <typename VecT>
-VecT CalculateForwardVector(const VecT &rotation) {
-	using Scalar = typename VecT::value_type;
-	glm::mat<4, 4, Scalar, glm::defaultp> rotMat(1.0);
-	rotMat = Rotate(rotMat, rotation.y, VecT(Scalar(0), Scalar(1), Scalar(0)));
-	rotMat = Rotate(rotMat, rotation.x, VecT(Scalar(1), Scalar(0), Scalar(0)));
-	rotMat = Rotate(rotMat, rotation.z, VecT(Scalar(0), Scalar(0), Scalar(1)));
-	return VecT(rotMat[2]);
-}
+inline Vec3 CalculateRightVector(const glm::quat &orientation) { return orientation * Vec3(1.0f, 0.0f, 0.0f); }
 
-template <typename VecT>
-VecT CalculateRightVector(const VecT &rotation) {
-	using Scalar = typename VecT::value_type;
-	glm::mat<4, 4, Scalar, glm::defaultp> rotMat(1.0);
-	rotMat = Rotate(rotMat, rotation.y, VecT(Scalar(0), Scalar(1), Scalar(0)));
-	rotMat = Rotate(rotMat, rotation.x, VecT(Scalar(1), Scalar(0), Scalar(0)));
-	rotMat = Rotate(rotMat, rotation.z, VecT(Scalar(0), Scalar(0), Scalar(1)));
-	return VecT(rotMat[0]);
-}
+inline Vec3 CalculateUpVector(const glm::quat &orientation) { return orientation * Vec3(0.0f, 1.0f, 0.0f); }
 
-template <typename VecT>
-VecT CalculateUpVector(const VecT &rotation) {
-	using Scalar = typename VecT::value_type;
-	glm::mat<4, 4, Scalar, glm::defaultp> rotMat(1.0);
-	rotMat = Rotate(rotMat, rotation.y, VecT(Scalar(0), Scalar(1), Scalar(0)));
-	rotMat = Rotate(rotMat, rotation.x, VecT(Scalar(1), Scalar(0), Scalar(0)));
-	rotMat = Rotate(rotMat, rotation.z, VecT(Scalar(0), Scalar(0), Scalar(1)));
-	return VecT(rotMat[1]);
-}
+inline Vec3 CalculateForwardVector(const glm::quat &orientation) { return orientation * Vec3(0.0f, 0.0f, 1.0f); }
 
-template <typename VecT>
-DirectionVectors<VecT> CalculateDirectionVectors(const VecT &rotation) {
-	using Scalar = typename VecT::value_type;
-	glm::mat<4, 4, Scalar, glm::defaultp> rotMat(1.0);
-	rotMat = Rotate(rotMat, rotation.y, VecT(Scalar(0), Scalar(1), Scalar(0)));
-	rotMat = Rotate(rotMat, rotation.x, VecT(Scalar(1), Scalar(0), Scalar(0)));
-	rotMat = Rotate(rotMat, rotation.z, VecT(Scalar(0), Scalar(0), Scalar(1)));
-
-	return {VecT(rotMat[0]), VecT(rotMat[1]), VecT(rotMat[2])};
+inline DirectionVectors CalculateDirectionVectors(const glm::quat &orientation) {
+	return {CalculateRightVector(orientation), CalculateUpVector(orientation), CalculateForwardVector(orientation)};
 }
 
 // --- Core Math Helpers ---
@@ -235,8 +255,6 @@ static T Lerp(const T &a, const T &b, Scalar t) {
 
 template <typename T>
 static T Clamp(const T &x, const T &low, const T &high) {
-	if (x < low) return low;
-	if (x > high) return high;
-	return x;
+	return glm::clamp(x, low, high);
 }
 }  // namespace PE::Math

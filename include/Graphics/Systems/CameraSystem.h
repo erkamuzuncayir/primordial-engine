@@ -6,15 +6,14 @@
 #include "Scene/Components/Transform.h"
 
 namespace PE::Graphics::Systems {
-enum class CameraType : uint8_t { Overview = 0, Navigation = 1, CloseUp = 2, Count = 3 };
+enum class CameraIndex : uint8_t { One = 0, Two = 1, Three = 2, Four = 3 };
 
 class CameraSystem : public ECS::ISystem {
 public:
 	CameraSystem()			 = default;
 	~CameraSystem() override = default;
 
-	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager, Input::InputSystem *inputSystem,
-						  const RenderConfig &renderConfig);
+	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *ecsManager, Input::InputSystem *inputSystem);
 	ERROR_CODE Shutdown() override;
 	void	   OnUpdate(float dt) override;
 

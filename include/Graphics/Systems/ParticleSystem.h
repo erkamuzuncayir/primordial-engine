@@ -10,7 +10,7 @@ public:
 	ParticleSystem()		   = default;
 	~ParticleSystem() override = default;
 
-	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *entityManager, IRenderer *renderer);
+	ERROR_CODE Initialize(ECS::ESystemStage stage, ECS::ECSManager *ecsManager, IRenderer *renderer);
 	ERROR_CODE Shutdown() override;
 	void	   OnUpdate(float dt) override;
 

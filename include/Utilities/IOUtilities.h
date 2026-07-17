@@ -1,5 +1,4 @@
 #pragma once
-#include <string.h>
 
 #include <charconv>
 #include <filesystem>
@@ -215,6 +214,36 @@ public:
 		}
 
 		return ERROR_CODE::OK;
+	}
+
+	static std::vector<std::filesystem::path> GetFilenamesInDirectoryByExtension(const std::string &dirPath,
+																				 const std::string &ext) {
+		std::vector<std::filesystem::path> paths;
+
+		if (!std::filesystem::exists(dirPath) || !std::filesystem::is_directory(dirPath)) {
+			return {};
+		}
+
+		for (const auto &entry : std::filesystem::directory_iterator(dirPath)) {
+			if (entry.is_regular_file() && entry.path().extension() == ext) paths.emplace_back(entry.path());
+		}
+
+		return paths;
+	}
+
+	static std::vector<std::filesystem::path> GetFilenamesInDirectoryRecursiveByExtension(const std::string &dirPath,
+																						  const std::string &ext) {
+		std::vector<std::filesystem::path> paths;
+
+		if (!std::filesystem::exists(dirPath) || !std::filesystem::is_directory(dirPath)) {
+			return {};
+		}
+
+		for (const auto &entry : std::filesystem::recursive_directory_iterator(dirPath)) {
+			if (entry.is_regular_file() && entry.path().extension() == ext) paths.emplace_back(entry.path());
+		}
+
+		return paths;
 	}
 };
 }  // namespace PE::Utilities

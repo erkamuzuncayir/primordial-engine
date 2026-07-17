@@ -13,13 +13,13 @@
 #include "Utilities/MemoryUtilities.h"
 
 namespace PE::Graphics::Systems {
-ERROR_CODE RenderSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *entityManager,
+ERROR_CODE RenderSystem::Initialize(const ECS::ESystemStage stage, ECS::ECSManager *ecsManager,
 									CameraSystem *cameraSystem, GLFWwindow *window, Core::EngineConfig &config) {
 	PE_CHECK_STATE_INIT(m_state, "Render system is already initialized!");
 	m_state = SystemState::Initializing;
 
 	m_typeID		 = GetUniqueISystemTypeID<RenderSystem>();
-	ref_eM			 = entityManager;
+	ref_eM			 = ecsManager;
 	ref_cameraSystem = cameraSystem;
 	m_stage			 = stage;
 	ref_engineConfig = &config;
@@ -50,10 +50,16 @@ void RenderSystem::OnUpdate(float dt) {
 	bool shouldFlush = false;
 
 	ref_activeCamEntityID = ref_cameraSystem->GetActiveCameraEntityID();
-	if (ref_activeCamEntityID == UINT32_MAX) return;
+	if (ref_activeCamEntityID == ECS::INVALID_ENTITY_ID) return;
 
-	const auto &cam			 = ref_eM->GetCompArr<Components::Camera>().Get(ref_activeCamEntityID);
-	const auto &camTransform = ref_eM->GetCompArr<Scene::Components::Transform>().Get(ref_activeCamEntityID);
+	Components::Camera *cam;
+	// TODO: This is hack, handle this gracefully later on!!! Probably you should defer all update methods when you reload scene!
+	if (ref_eM->HasComponent<Components::Camera>(ref_activeCamEntityID)) {
+		cam = &ref_eM->GetCompArr<Components::Camera>().Get(ref_activeCamEntityID);
+	}
+	else {
+		cam = &ref_eM->GetCompArr<Components::Camera>().Data()[0];
+	}
 
 	ECS::EntityID activeLightID	  = ECS::INVALID_ENTITY_ID;
 	bool		  isDayNightLight = false;
@@ -92,10 +98,10 @@ void RenderSystem::OnUpdate(float dt) {
 	Math::Vec4 finalLightDir	 = Math::Vec4(directionToTarget, 0.0f);
 
 	Graphics::CBPerPass perPassData{
-		.view			   = cam.viewMatrix,
-		.projection		   = cam.projectionMatrix,
-		.inverseView	   = Math::Inverse(cam.viewMatrix),
-		.inverseProjection = Math::Inverse(cam.projectionMatrix),
+		.view			   = cam->viewMatrix,
+		.projection		   = cam->projectionMatrix,
+		.inverseView	   = Math::Inverse(cam->viewMatrix),
+		.inverseProjection = Math::Inverse(cam->projectionMatrix),
 		.time			   = 0,
 		.deltaTime		   = dt,
 		.resolution		   = Math::Vec2(ref_renderConfig->width, ref_renderConfig->height),

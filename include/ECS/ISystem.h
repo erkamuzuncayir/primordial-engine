@@ -9,16 +9,17 @@
 namespace PE::ECS {
 enum class ESystemStage {
 	EarlyUpdate = 0,
-	Logic,	// TODO: For user scripts. Make an ordering mechanism between those logics.
-	SceneManager,
-	Animation,	// Placeholder
+	Animation,
 	Physics,
-	LateUpdate,
 	Transform,
+	AABBUpdate,
+	SceneManager,
+	Logic,	// TODO: For user scripts. Make an ordering mechanism between those logics.
 	Camera,
-	Particle,
 	GUI,
+	Particle,
 	Render,
+	LateUpdate,
 	Count
 };
 
@@ -44,7 +45,7 @@ protected:
 
 inline ISystemTypeID GenerateISystemTypeID() {
 	static std::atomic<uint32_t> lastID{0};
-	return lastID.fetch_add(1, std::memory_order_relaxed);
+	return lastID.fetch_add(1);
 }
 
 inline ISystemTypeID ISystem::GetID() const {
