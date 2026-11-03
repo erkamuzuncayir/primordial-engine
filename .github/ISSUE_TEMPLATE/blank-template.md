@@ -2,7 +2,7 @@
 name: Blank Template
 about: Other reasons.
 title: ''
-labels: ''
+labels: bug
 assignees: erkamuzuncayir
 
 ---

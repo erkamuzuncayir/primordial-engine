@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help me improve
+about: Create a report to help us improve.
 title: "[BUG]: "
 labels: bug
 assignees: erkamuzuncayir
@@ -8,30 +8,30 @@ type: Bug
 
 ---
 
-### Bug Report
+# Bug Report
 
-**Issue:**
+### Issue
 [Briefly describe what the issue is.]
 
-**Steps to Reproduce:**
+### Steps to Reproduce
 1.
 2.
 3.
 ...
 
-**Expected Outcome:**
+### Expected Outcome
 [What should happen when steps are followed.]
 
-**Actual Outcome:**
+### Actual Outcome
 [What actually happened.]
 
-**Environment:**
+### Environment
 - OS:
 - GPU:
 - CPU:
 - Rendering Backend:
 
-**Engine.log (if it exists) or screenshots:**
+### Additional Context & Screenshots
 [Attach any screenshots or logs related to the issue here.]
 
-**Callstack:**
+### Callstack
