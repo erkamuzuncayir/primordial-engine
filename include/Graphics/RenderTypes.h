@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 
 #include "ECS/Entity.h"
 #include "Math/Math.h"

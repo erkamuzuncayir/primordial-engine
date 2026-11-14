@@ -15,38 +15,38 @@
 namespace PE::Assets {
 #if PE_D3D11
 static inline const std::filesystem::path DefaultShaderVSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("DiffuseLighting_Forward_vs.cso");
+	Utilities::IOUtilities::GetShadersPath("DiffuseLighting_Forward_vs.cso");
 static inline const std::filesystem::path DefaultShaderPSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("DiffuseLighting_Forward_ps.cso");
+	Utilities::IOUtilities::GetShadersPath("DiffuseLighting_Forward_ps.cso");
 static inline const std::filesystem::path DefaultUnlitShaderVSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Unlit_vs.cso");
+	Utilities::IOUtilities::GetShadersPath("Default_Unlit_vs.cso");
 static inline const std::filesystem::path DefaultUnlitShaderPSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Unlit_ps.cso");
+	Utilities::IOUtilities::GetShadersPath("Default_Unlit_ps.cso");
 static inline const std::filesystem::path DefaultParticleShaderVSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Particle_vs.cso");
+	Utilities::IOUtilities::GetShadersPath("Default_Particle_vs.cso");
 static inline const std::filesystem::path DefaultParticleShaderPSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Particle_ps.cso");
+	Utilities::IOUtilities::GetShadersPath("Default_Particle_ps.cso");
 static inline const std::filesystem::path DefaultShadowShaderVSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Shadow_vs.cso");
+	Utilities::IOUtilities::GetShadersPath("Default_Shadow_vs.cso");
 static inline const std::filesystem::path DefaultShadowShaderPSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Shadow_ps.cso");
+	Utilities::IOUtilities::GetShadersPath("Default_Shadow_ps.cso");
 #elif PE_VULKAN
 static inline const std::filesystem::path DefaultShaderVSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Phong_Forward_vert.spv");
+	Utilities::IOUtilities::GetShadersPath("Phong_Forward_vert.spv");
 static inline const std::filesystem::path DefaultShaderPSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Phong_Forward_frag.spv");
+	Utilities::IOUtilities::GetShadersPath("Phong_Forward_frag.spv");
 static inline const std::filesystem::path DefaultUnlitShaderVSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Unlit_vert.spv");
+	Utilities::IOUtilities::GetShadersPath("Default_Unlit_vert.spv");
 static inline const std::filesystem::path DefaultUnlitShaderPSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Unlit_frag.spv");
+	Utilities::IOUtilities::GetShadersPath("Default_Unlit_frag.spv");
 static inline const std::filesystem::path DefaultParticleShaderVSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Particle_vert.spv");
+	Utilities::IOUtilities::GetShadersPath("Default_Particle_vert.spv");
 static inline const std::filesystem::path DefaultParticleShaderPSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Particle_frag.spv");
+	Utilities::IOUtilities::GetShadersPath("Default_Particle_frag.spv");
 static inline const std::filesystem::path DefaultShadowShaderVSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Shadow_vert.spv");
+	Utilities::IOUtilities::GetShadersPath("Default_Shadow_vert.spv");
 static inline const std::filesystem::path DefaultShadowShaderPSPath =
-	Utilities::IOUtilities::GetDefaultAssetPath("Default_Shadow_frag.spv");
+	Utilities::IOUtilities::GetShadersPath("Default_Shadow_frag.spv");
 #endif
 
 ERROR_CODE AssetManager::Initialize(Graphics::IRenderer *renderer, const Core::EngineConfig &engineConfig) {

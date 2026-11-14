@@ -1,6 +1,5 @@
 #ifdef PE_D3D11
 #include <GLFW/glfw3.h>	 // For GLFW
-#define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
 #include "Graphics/D3D11/D3D11GPUBuffer.h"

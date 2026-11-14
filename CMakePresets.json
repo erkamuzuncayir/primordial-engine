@@ -1,17 +1,25 @@
 {
-  "version": 3,
+  "version": 10,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 20,
+    "minor": 31,
     "patch": 0
   },
   "configurePresets": [
     {
-      "name": "windows-base",
+      "name": "Ninja-Multi-Base",
       "hidden": true,
-      "generator": "Ninja",
+      "generator": "Ninja Multi-Config",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel"
+      }
+    },
+    {
+      "name": "Windows-Base",
+      "hidden": true,
+      "inherits": "Ninja-Multi-Base",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -19,11 +27,9 @@
       }
     },
     {
-      "name": "linux-base",
+      "name": "Linux-Base",
       "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "installDir": "${sourceDir}/install/${presetName}",
+      "inherits": "Ninja-Multi-Base",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -31,125 +37,115 @@
       }
     },
     {
-      "name": "clang-base-windows",
-      "hidden": true,
-      "inherits": "windows-base",
+      "name": "Clang-Windows",
+      "inherits": "Windows-Base",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl.exe",
-        "CMAKE_CXX_COMPILER": "clang-cl.exe",
+        "CMAKE_CXX_COMPILER": "Clang-cl.exe",
         "CMAKE_LINKER": "lld-link.exe"
-      },
-      "environment": {
-        "CC": "clang-cl.exe",
-        "CXX": "clang-cl.exe"
       }
     },
     {
-      "name": "clang-base-linux",
-      "hidden": true,
-      "inherits": "linux-base",
+      "name": "Clang-Linux",
+      "inherits": "Linux-Base",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++"
-      },
-      "environment": {
-        "CC": "clang",
-        "CXX": "clang++"
       }
     },
     {
-      "name": "gcc-base",
-      "hidden": true,
-      "inherits": "linux-base",
+      "name": "GCC-Linux",
+      "inherits": "Linux-Base",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "gcc",
         "CMAKE_CXX_COMPILER": "g++"
-      },
-      "environment": {
-        "CC": "gcc",
-        "CXX": "g++"
       }
     },
     {
-      "name": "msvc-base",
-      "hidden": true,
-      "inherits": "windows-base",
+      "name": "MSVC",
+      "inherits": "Windows-Base",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "Clang-Win-Debug",
+      "configurePreset": "Clang-Windows",
+      "configuration": "Debug"
     },
     {
-      "name": "Debug-Clangd-Windows",
-      "displayName": "Debug Clangd (Windows)",
-      "description": "Debug build using LLVM clang-cl on Windows",
-      "inherits": "clang-base-windows",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
+      "name": "Clang-Win-Release",
+      "configurePreset": "Clang-Windows",
+      "configuration": "Release"
     },
     {
-      "name": "Release-Clangd-Windows",
-      "displayName": "Release Clangd (Windows)",
-      "description": "Release build using LLVM clang-cl on Windows",
-      "inherits": "clang-base-windows",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
+      "name": "Clang-Win-RelWithDebInfo",
+      "configurePreset": "Clang-Windows",
+      "configuration": "RelWithDebInfo"
     },
     {
-      "name": "Debug-Clang-Linux",
-      "displayName": "Debug Clang (Linux)",
-      "description": "Debug build using Clang on Linux",
-      "inherits": "clang-base-linux",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
+      "name": "Clang-Win-MinSizeRel",
+      "configurePreset": "Clang-Windows",
+      "configuration": "MinSizeRel"
     },
     {
-      "name": "Release-Clang-Linux",
-      "displayName": "Release Clang (Linux)",
-      "description": "Release build using Clang on Linux",
-      "inherits": "clang-base-linux",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
+      "name": "Clang-Linux-Debug",
+      "configurePreset": "Clang-Linux",
+      "configuration": "Debug"
     },
     {
-      "name": "Debug-GCC",
-      "displayName": "Debug GCC",
-      "description": "Debug build using GCC on Linux",
-      "inherits": "gcc-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
+      "name": "Clang-Linux-Release",
+      "configurePreset": "Clang-Linux",
+      "configuration": "Release"
     },
     {
-      "name": "Release-GCC",
-      "displayName": "Release GCC",
-      "description": "Release build using GCC on Linux",
-      "inherits": "gcc-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
+      "name": "Clang-Linux-RelWithDebInfo",
+      "configurePreset": "Clang-Linux",
+      "configuration": "RelWithDebInfo"
     },
     {
-      "name": "Debug-MSVC",
-      "displayName": "Debug MSVC",
-      "description": "Debug build using MSVC cl.exe",
-      "inherits": "msvc-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
+      "name": "Clang-Linux-MinSizeRel",
+      "configurePreset": "Clang-Linux",
+      "configuration": "MinSizeRel"
     },
     {
-      "name": "Release-MSVC",
-      "displayName": "Release MSVC",
-      "description": "Release build using MSVC cl.exe",
-      "inherits": "msvc-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
+      "name": "GCC-Debug",
+      "configurePreset": "GCC-Linux",
+      "configuration": "Debug"
+    },
+    {
+      "name": "GCC-Release",
+      "configurePreset": "GCC-Linux",
+      "configuration": "Release"
+    },
+    {
+      "name": "GCC-RelWithDebInfo",
+      "configurePreset": "GCC-Linux",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "GCC-MinSizeRel",
+      "configurePreset": "GCC-Linux",
+      "configuration": "MinSizeRel"
+    },
+    {
+      "name": "MSVC-Debug",
+      "configurePreset": "MSVC",
+      "configuration": "Debug"
+    },
+    {
+      "name": "MSVC-Release",
+      "configurePreset": "MSVC",
+      "configuration": "Release"
+    },
+    {
+      "name": "MSVC-RelWithDebInfo",
+      "configurePreset": "MSVC",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "MSVC-MinSizeRel",
+      "configurePreset": "MSVC",
+      "configuration": "MinSizeRel"
     }
   ]
 }

@@ -18,6 +18,8 @@
 #include "Utilities/StringUtilities.h"
 
 namespace PE::Scene {
+static constexpr std::string_view DefaultPrefix = "PE_DEFAULT/";
+
 namespace Components {
 struct DayNightCycle;
 }
@@ -226,7 +228,7 @@ void SceneLoader::HandleTextureKey(const std::string &key, const std::string &va
 			if (const auto path = std::filesystem::path(splitPath); path.is_absolute())
 				m_texBuilder.paths.push_back(splitPath);
 			else
-				m_texBuilder.paths.push_back(IOUtilities::GetAssetPath(splitPath));
+				m_texBuilder.paths.push_back(IOUtilities::GetAssetsPath(splitPath));
 		}
 	} else if (key == "Width")
 		m_texBuilder.params.width = static_cast<uint16_t>(ParseInt(value));
@@ -264,13 +266,25 @@ void SceneLoader::HandleShaderKey(const std::string &key, const std::string &val
 	} else if (key == "VS_Path") {
 		if (const auto path = std::filesystem::path(value); path.is_absolute())
 			m_shaderBuilder.vsPath = path;
-		else
-			m_shaderBuilder.vsPath = IOUtilities::GetAssetPath(value);
+		else {
+			if (value.starts_with(DefaultPrefix)) {
+				const std::string_view relativeDefaultPath = std::string_view(value).substr(DefaultPrefix.size());
+				m_shaderBuilder.vsPath = IOUtilities::GetShadersPath(relativeDefaultPath.data());
+			}
+			else
+				m_shaderBuilder.vsPath = IOUtilities::GetAssetsPath(value);
+		}
 	} else if (key == "PS_Path") {
 		if (const auto path = std::filesystem::path(value); path.is_absolute())
 			m_shaderBuilder.psPath = value;
-		else
-			m_shaderBuilder.psPath = IOUtilities::GetAssetPath(value);
+		else {
+			if (value.starts_with(DefaultPrefix)) {
+				const std::string_view relativeDefaultPath = std::string_view(value).substr(DefaultPrefix.size());
+				m_shaderBuilder.psPath = IOUtilities::GetShadersPath(relativeDefaultPath.data());
+			}
+			else
+				m_shaderBuilder.psPath = IOUtilities::GetAssetsPath(value);
+		}
 	} else {
 		PE_LOG_ERROR("Unknown key-value config pair. Key:" + key + " Value:" + value);
 	}
@@ -360,7 +374,7 @@ void SceneLoader::HandleMeshKey(const std::string &key, const std::string &value
 		if (const auto path = std::filesystem::path(value); path.is_absolute())
 			m_meshBuilder.path = path;
 		else
-			m_meshBuilder.path = IOUtilities::GetAssetPath(value);
+			m_meshBuilder.path = IOUtilities::GetAssetsPath(value);
 	} else if (key == "Shape")
 		m_meshBuilder.shape = value;
 	else if (key == "Radius")
