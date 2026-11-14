@@ -167,17 +167,17 @@ public:
 		return root;
 	}
 
-	static const std::filesystem::path &GetDefaultAssetsRoot() {
-		static const std::filesystem::path root = std::filesystem::current_path() / "assets" / "defaults";
+	static const std::filesystem::path &GetShadersRoot() {
+		static const std::filesystem::path root = std::filesystem::current_path() / "shaders";
 		return root;
 	}
 
-	static std::string GetAssetPath(const std::string &relativePath) {
+	static std::string GetAssetsPath(const std::string &relativePath) {
 		return (GetAssetsRoot() / relativePath).string();
 	}
 
-	static std::string GetDefaultAssetPath(const std::string &relativePath) {
-		return (GetDefaultAssetsRoot() / relativePath).string();
+	static std::string GetShadersPath(const std::string &relativePath) {
+		return (GetShadersRoot() / relativePath).string();
 	}
 
 	static ERROR_CODE ReadBinaryFile(const std::filesystem::path &path, std::vector<char> &buffer) {

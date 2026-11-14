@@ -1,7 +1,4 @@
 #pragma once
-#ifdef _WIN32
-#define GLFW_EXPOSE_NATIVE_WIN32
-#endif
 #include <GLFW/glfw3.h>
 
 #include "CallbackManager.h"

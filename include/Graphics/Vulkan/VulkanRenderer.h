@@ -1,6 +1,7 @@
 #pragma once
 
 #include <span>
+#include <unordered_map>
 #include <vector>
 
 #include "Core/EngineConfig.h"
